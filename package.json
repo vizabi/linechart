@@ -4,11 +4,14 @@
     "link": "npm link ../vizabi",
     "build": "webpack --progress"
   },
+  "files": [
+    "build/dist"
+  ],
   "devDependencies": {
     "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler"
   },
   "name": "vizabi-linechart",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
     "vizabi": "^0.20.2-6"
   },
