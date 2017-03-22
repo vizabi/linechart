@@ -202,7 +202,7 @@ const LCComponent = Component.extend({
         if (!_this._frameIsValid(values)) return;
         _this.values = values;
         _this.updateShow();
-        _this.updateSize();
+        if(_this.updateSize()) return;
         _this.updateDoubtOpacity();
         _this.zoomToMaxMin();
         _this.redrawDataPoints();
