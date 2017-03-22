@@ -844,7 +844,7 @@ const LCComponent = Component.extend({
         .transition()
         .duration(_this.duration)
         .ease(d3.easeLinear)
-        .attr("transform", "translate(" + _this.xScale(d3.min([_this.model.marker.axis_x.zoomedMax, _this.time])) + ",0)");
+        .attr("transform", "translate(" + _this.xScale(d3.min([_this.model.marker.axis_x.getZoomedMax(), _this.time])) + ",0)");
 
 
       if (!_this.hoveringNow && _this.time - _this.model.time.start !== 0) {
@@ -1003,34 +1003,27 @@ const LCComponent = Component.extend({
   },
 
   zoomToMaxMin() {
-    const _this = this;
-    //
-    /*
-     if(this.model.marker.axis_y.zoomedMin == null ) this.model.marker.axis_y.zoomedMin = this.yScale.domain()[0];
-     if(this.model.marker.axis_y.zoomedMax == null ) this.model.marker.axis_y.zoomedMax = this.yScale.domain()[1];
-     */
-
-
     if (
-      this.model.marker.axis_x.zoomedMin != null &&
-      this.model.marker.axis_x.zoomedMax != null) {
-      this.xScale.domain([this.model.marker.axis_x.zoomedMin, this.model.marker.axis_x.zoomedMax]);
+      this.model.marker.axis_x.getZoomedMin() != null &&
+      this.model.marker.axis_x.getZoomedMax() != null) {
+      this.xScale.domain([this.model.marker.axis_x.getZoomedMin(), this.model.marker.axis_x.getZoomedMax()]);
       this.xAxisEl.call(this.xAxis);
     }
+
     if (
-      this.model.marker.axis_y.zoomedMin != null &&
-      this.model.marker.axis_y.zoomedMax != null) {
-      if ((this.model.marker.axis_y.zoomedMin <= 0 || this.model.marker.axis_y.zoomedMax <= 0)
+      this.model.marker.axis_y.getZoomedMin() != null &&
+      this.model.marker.axis_y.getZoomedMax() != null) {
+      if ((this.model.marker.axis_y.getZoomedMin() <= 0 || this.model.marker.axis_y.getZoomedMax() <= 0)
         && this.model.marker.axis_y.scaleType == "log") {
         this.yScale = d3.scale.genericLog()
-          .domain([this.model.marker.axis_y.zoomedMin, this.model.marker.axis_y.zoomedMax])
+          .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
         this.model.marker.axis_y.scale = d3.scale.genericLog()
-          .domain([this.model.marker.axis_y.zoomedMin, this.model.marker.axis_y.zoomedMax])
+          .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
         this.yScale = this.model.marker.axis_y.scale;
       } else {
-        this.yScale.domain([this.model.marker.axis_y.zoomedMin, this.model.marker.axis_y.zoomedMax]);
+        this.yScale.domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()]);
       }
       this.yAxisEl.call(this.yAxis);
     }
