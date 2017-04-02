@@ -157,7 +157,8 @@ const LCComponent = Component.extend({
     this.KEY = this.model.entities.getDimension();
     this.collisionResolver = collisionResolver()
       .selector(".vzb-lc-label")
-      .value("valueY");
+      .value("valueY")
+      .filter(function(d, time){return d.valueX - time === 0});
 
     //component events
 
@@ -868,7 +869,7 @@ const LCComponent = Component.extend({
       // then order a new collision resolving
       clearTimeout(_this.collisionTimeout);
       _this.collisionTimeout = setTimeout(() => {
-        _this.entityLabels.call(_this.collisionResolver.data(_this.cached));
+        _this.entityLabels.call(_this.collisionResolver.data(_this.cached).time(_this.time));
       }, _this.model.time.delayAnimations * 1.5);
 
     });

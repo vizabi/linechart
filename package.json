@@ -8,7 +8,7 @@
     "build/dist"
   ],
   "name": "vizabi-linechart",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "devDependencies": {
     "compare-version": "^0.1.2",
     "cross-env": "^3.2.4",
