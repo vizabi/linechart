@@ -767,12 +767,12 @@ const LCComponent = Component.extend({
             .style("stroke", colorShadow)
             .style("stroke-width", _this.shadowWidth + "px")
             .attr("transform", "translate(0, " + (_this.shadowWidth - _this.lineWidth) + ")")
-            .attr("d", _this.line(xy));
+            .attr("d", _this.line(xy) || "");
           path2
           //.style("filter", "none")
             .style("stroke", color)
             .style("stroke-width", _this.lineWidth + "px")
-            .attr("d", _this.line(xy));
+            .attr("d", _this.line(xy) || "");
           const totalLength = path2.node().getTotalLength();
 
           // this section ensures the smooth transition while playing and not needed otherwise
