@@ -42,12 +42,14 @@
       .vzb-lc-line {
         fill: none;
         stroke-linecap: round;
+        stroke-linejoin: round;
         //filter:url(#vzb-lc-filter-dropshadow);
       }
 
       .vzb-lc-line-shadow {
         fill: none;
         stroke-linecap: round;
+        stroke-linejoin: round;
       }
 
       .vzb-lc-circle {
