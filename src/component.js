@@ -12,7 +12,7 @@ const {
 } = Vizabi;
 
 // LINE CHART COMPONENT
-const LCComponent = Component.extend({
+const LCComponent = Component.extend("linechart", {
 
   init(config, context) {
     const _this = this;
