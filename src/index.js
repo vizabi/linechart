@@ -1,6 +1,7 @@
 import "./styles.scss";
 import component from "./component";
 
+const VERSION_INFO = { version: __VERSION, build: __BUILD };
 
 // LINE CHART TOOL
 const LineChart = Vizabi.Tool.extend("LineChart", {
@@ -168,8 +169,9 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
       },
       "presentation": false
     }
-  }
+  },
 
+  versionInfo: VERSION_INFO
 });
 
 export default LineChart;
