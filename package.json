@@ -6,7 +6,7 @@
     "deploy": "tool-deploy"
   },
   "files": [
-    "build/dist"
+    "build"
   ],
   "name": "vizabi-linechart",
   "version": "1.0.11",
