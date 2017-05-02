@@ -1,5 +1,5 @@
 {
-  "main": "build/dist/linechart.js",
+  "main": "build/linechart.js",
   "scripts": {
     "link": "npm link ../vizabi",
     "build": "cross-env NODE_ENV=production webpack --progress",
@@ -9,7 +9,7 @@
     "build"
   ],
   "name": "vizabi-linechart",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "devDependencies": {
     "cross-env": "^4.0.0",
     "vizabi": "^0.21.0-20",
