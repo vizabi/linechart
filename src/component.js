@@ -162,8 +162,10 @@ const LCComponent = Component.extend("linechart", {
 
     //component events
 
+    const conceptPropsY = this.model.marker.axis_y.getConceptprops();
     utils.setIcon(this.yInfoEl, iconQuestion)
-      .select("svg").attr("width", "0px").attr("height", "0px");
+      .select("svg").attr("width", "0px").attr("height", "0px")
+      .style('opacity', Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
 
     this.yInfoEl.on("click", () => {
       _this.parent.findChildByName("gapminder-datanotes").pin();
