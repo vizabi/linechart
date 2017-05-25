@@ -75,6 +75,18 @@
           opacity: 1;
         }
       }
+      .vzb-lc-labels {
+        .vzb-lc-labelname {
+          paint-order: stroke;
+          stroke: #FFFFFF;
+          stroke-width: 3px;
+        }
+        &.small {
+          .vzb-lc-circle {
+            stroke-width: 1px;
+          }
+        }
+      }
     }
 
   }

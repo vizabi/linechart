@@ -158,8 +158,10 @@ const LCComponent = Component.extend("linechart", {
     this.collisionResolver = collisionResolver()
       .selector(".vzb-lc-label")
       .value("valueY")
-      .filter(function(d, time){return d.valueX - time === 0});
-
+      .filter(function(d, time){
+        return (d.valueX - time === 0 && !d.hidden)
+      });
+    
     //component events
 
     const conceptPropsY = this.model.marker.axis_y.getConceptprops();
@@ -326,25 +328,34 @@ const LCComponent = Component.extend("linechart", {
       .KEY(KEY);
 
     this.data = this.model.marker.getKeys();
-
+    this.linesContainer.selectAll(".vzb-lc-entity").remove();
     this.entityLines = this.linesContainer.selectAll(".vzb-lc-entity").data(this.data);
-    this.entityLines.exit().remove();
+
+    this.lineWidth = this.lineWidthScale(this.data.length);
+    if (this.lineWidth >= 2) {
+      this.shadowWidth = this.lineWidth * 1.3;
+    } else {
+      this.shadowWidth = null;
+    }
+    this.labelsContainer.classed("small", !this.shadowWidth);
     this.entityLines = this.entityLines.enter().append("g")
       .attr("class", "vzb-lc-entity")
       .each(function(d, index) {
         const entity = d3.select(this);
-
-        entity.append("path")
-          .attr("class", "vzb-lc-line-shadow");
+        if (false && _this.shadowWidth) {
+          entity.append("path")
+            .attr("class", "vzb-lc-line-shadow");
+        } else {
+          
+        }
 
         entity.append("path")
           .attr("class", "vzb-lc-line");
 
       })
       .merge(this.entityLines);
-
+    this.labelsContainer.selectAll(".vzb-lc-entity").remove();
     this.entityLabels = this.labelsContainer.selectAll(".vzb-lc-entity").data(this.data);
-    this.entityLabels.exit().remove();
     this.entityLabels = this.entityLabels.enter().append("g")
       .attr("class", "vzb-lc-entity")
       .on("mouseover", d => {
@@ -552,7 +563,7 @@ const LCComponent = Component.extend("linechart", {
       });
 
     this.entityLabels.selectAll(".vzb-lc-circle")
-      .attr("r", _this.activeProfile.lollipopRadius);
+      .attr("r", this.shadowWidth ? _this.activeProfile.lollipopRadius : _this.activeProfile.lollipopRadius * 0.8);
 
     const magicMargin = 20;
     this.margin.right = Math.max(this.margin.right, longestLabelWidth + this.activeProfile.text_padding + magicMargin);
@@ -709,6 +720,7 @@ const LCComponent = Component.extend("linechart", {
 
     if (!_this.all_values) return;
     this.model.marker.getFrame(this.time, (values, time) => {
+
       if (!_this._frameIsValid(values)) return;
       _this.values = values;
       if (!_this.timeUpdatedOnce) {
@@ -719,8 +731,6 @@ const LCComponent = Component.extend("linechart", {
       }
       _this.updateDoubtOpacity();
 
-      _this.lineWidth = _this.lineWidthScale(_this.data.length);
-      _this.shadowWidth = _this.lineWidth * 1.3;
       _this.entityLines
         .each(function(d, index) {
           const entity = d3.select(this);
@@ -737,10 +747,11 @@ const LCComponent = Component.extend("linechart", {
 
           //TODO: optimization is possible if getValues would return both x and time
           //TODO: optimization is possible if getValues would return a limited number of points, say 1 point per screen pixel
+//          const startTime = new Date();
 
           const xy = _this.prev_steps.map((frame, i) => [frame, _this.all_values[frame] ? _this.all_values[frame].axis_y[d[KEY]] : null])
             .filter(d => d[1] || d[1] === 0);
-
+//          timer += new Date() - startTime;
           // add last point
           if (values.axis_y[d[KEY]]) {
             xy.push([values.axis_x[d[KEY]], values.axis_y[d[KEY]]]);
@@ -763,18 +774,19 @@ const LCComponent = Component.extend("linechart", {
           if (_this.model.time.playing && _this.totalLength_1[d[KEY]] === null) {
             _this.totalLength_1[d[KEY]] = path2.node().getTotalLength();
           }
+          const line = _this.line(xy) || "";
 
           const path1 = entity.select(".vzb-lc-line-shadow")
 
             .style("stroke", colorShadow)
             .style("stroke-width", _this.shadowWidth + "px")
             .attr("transform", "translate(0, " + (_this.shadowWidth - _this.lineWidth) + ")")
-            .attr("d", _this.line(xy) || "");
+            .attr("d", line);
           path2
           //.style("filter", "none")
             .style("stroke", color)
             .style("stroke-width", _this.lineWidth + "px")
-            .attr("d", _this.line(xy) || "");
+            .attr("d", line);
           const totalLength = path2.node().getTotalLength();
 
           // this section ensures the smooth transition while playing and not needed otherwise
@@ -819,25 +831,28 @@ const LCComponent = Component.extend("linechart", {
         .each(function(d, index) {
           const entity = d3.select(this);
           if (_this.cached[d[KEY]]) {
+            d.valueX = _this.xScale(_this.cached[d[KEY]]["valueX"]);
+            d.valueY = _this.yScale(_this.cached[d[KEY]]["valueY"]);
             entity
               .classed("vzb-hidden", false)
               .transition()
               .duration(_this.duration)
               .ease(d3.easeLinear)
-              .attr("transform", "translate(" + _this.xScale(d3.min([_this.cached[d[KEY]]["valueX"]])) + ",0)");
+              .attr("transform", "translate(" + d.valueX + ",0)");
 
             entity.select(".vzb-lc-circle")
               .transition()
               .duration(_this.duration)
               .ease(d3.easeLinear)
-              .attr("cy", _this.yScale(_this.cached[d[KEY]]["valueY"]) + 1);
+              .attr("cy", d.valueY + 1);
 
 
             entity.select(".vzb-lc-label")
               .transition()
               .duration(_this.duration)
               .ease(d3.easeLinear)
-              .attr("transform", "translate(0," + _this.yScale(_this.cached[d[KEY]]["valueY"]) + ")");
+              .attr("transform", "translate(0," + d.valueY + ")");
+
           } else {
             entity
               .classed("vzb-hidden", true);
@@ -871,7 +886,7 @@ const LCComponent = Component.extend("linechart", {
       // then order a new collision resolving
       clearTimeout(_this.collisionTimeout);
       _this.collisionTimeout = setTimeout(() => {
-        _this.entityLabels.call(_this.collisionResolver.data(_this.cached).time(_this.time));
+        _this.entityLabels.call(_this.collisionResolver.time(_this.xScale(_this.time)));
       }, _this.model.time.delayAnimations * 1.5);
 
     });
@@ -891,7 +906,6 @@ const LCComponent = Component.extend("linechart", {
       resolvedTime = this.model.time["start"];
     }
     let resolvedValue;
-    const timeDim = _this.model.time.getDimension();
 
     const mousePos = mouse[1] - _this.margin.top;
 
@@ -899,6 +913,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.model.marker.getFrame(resolvedTime, data => {
       if (!_this._frameIsValid(data)) return;
+      //const nearestKey = _this.getNearestKey(_this.yScale.invert(mousePos), data.axis_y);
       const nearestKey = _this.getNearestKey(mousePos, data.axis_y, _this.yScale.bind(_this));
       resolvedValue = data.axis_y[nearestKey];
       if (!me) me = {};
@@ -982,7 +997,7 @@ const LCComponent = Component.extend("linechart", {
    */
   highlightLines() {
     const _this = this;
-
+    const KEY = this.KEY;
     const OPACITY_HIGHLT = 1.0;
     const OPACITY_HIGHLT_DIM = 0.3;
     const OPACITY_SELECT = this.model.marker.opacityRegular;
@@ -990,22 +1005,68 @@ const LCComponent = Component.extend("linechart", {
     const OPACITY_SELECT_DIM = this.model.marker.opacitySelectDim;
 
     const someHighlighted = (this.model.marker.highlight.length > 0);
-    const someSelected = (this.model.marker.select.length > 0);
+    this.someSelected = (this.model.marker.select.length > 0);
+
+    // when pointer events need update...
+
+    this.nonSelectedOpacityZero = _this.model.marker.opacitySelectDim < 0.01;
+    const selected = {};
+    _this.model.marker.getSelected().map(d => {
+        selected[d[KEY]] = true;
+      }
+    );
+//    const startTime = new Date();
+    this.entityLines.style("opacity", (d) => {
+      if (_this.model.marker.isHighlighted(d)) return OPACITY_HIGHLT;
+      if (_this.someSelected) {
+        return selected[d[KEY]] ? OPACITY_SELECT : OPACITY_SELECT_DIM;
+      }
+      if (someHighlighted) return OPACITY_HIGHLT_DIM;
+      return OPACITY_REGULAR;
+    });
+    this.entityLabels.style("opacity", (d) => {
+      if (_this.model.marker.isHighlighted(d)) {
+        d.sortValue = 1;
+        return OPACITY_HIGHLT;
+      } else {
+        d.sortValue = 0;
+      }
+      if (_this.someSelected) {
+        return selected[d[KEY]] ? OPACITY_SELECT : OPACITY_SELECT_DIM;
+      }
+      if (someHighlighted) return OPACITY_HIGHLT_DIM;
+      return OPACITY_REGULAR;
+    }).attr("pointer-events", d => {
+      if(!_this.someSelected || !_this.nonSelectedOpacityZero || selected[d[KEY]]) {
+        d.hidden = false;
+        return "visible";   
+      } else {
+        d.hidden = true;
+        return "none";
+      }
+    })
+    .sort(function(x, y){
+      return d3.ascending(x.sortValue, y.sortValue);
+    });
+/*
+//    const startTime = new Date();
+//    console.log(new Date() - startTime);
     this.graph.selectAll(".vzb-lc-entity").each(function() {
       d3.select(this)
         .style("opacity", d => {
           if (_this.model.marker.isHighlighted(d)) return OPACITY_HIGHLT;
-          if (someSelected) {
-            return _this.model.marker.isSelected(d) ? OPACITY_SELECT : OPACITY_SELECT_DIM;
+          if (_this.someSelected) {
+            return selected[d[KEY]] ? OPACITY_SELECT : OPACITY_SELECT_DIM;
           }
           if (someHighlighted) return OPACITY_HIGHLT_DIM;
           return OPACITY_REGULAR;
-        });
+        })
     });
+*/
 
   },
 
-  zoomToMaxMin() {
+  zoomToMaxMin() { 
     if (
       this.model.marker.axis_x.getZoomedMin() != null &&
       this.model.marker.axis_x.getZoomedMax() != null) {
@@ -1037,14 +1098,24 @@ const LCComponent = Component.extend("linechart", {
    * Returns key from obj which value has the smallest difference with val
    */
   getNearestKey(val, obj, fn) {
-    const keys = Object.keys(obj);
+    //const startTime = new Date();
+    const KEY = this.KEY;
+    let keys = Object.keys(obj);
+
+    if (this.someSelected && this.nonSelectedOpacityZero) {
+      keys = this.model.marker.select.map(keyObj => {
+        return keyObj[KEY];
+      });
+    }
     let resKey = keys[0];
     for (let i = 1; i < keys.length; i++) {
-      const key = keys[i];
+      let key = keys[i];
+      
       if (Math.abs((fn ? fn(obj[key]) : obj[key]) - val) < Math.abs((fn ? fn(obj[resKey]) : obj[resKey]) - val)) {
         resKey = key;
       }
     }
+    //console.log(new Date() - startTime);
     return resKey;
   }
 
