@@ -40,6 +40,7 @@
         opacity: 0;
       }
       .vzb-lc-line {
+        cursor: pointer;
         fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
@@ -76,6 +77,9 @@
         }
       }
       .vzb-lc-labels {
+        .vzb-lc-entity {
+          cursor: pointer;
+        }
         .vzb-lc-labelname {
           paint-order: stroke;
           stroke: #FFFFFF;

@@ -191,6 +191,11 @@ const LCComponent = Component.extend("linechart", {
       _this.updateTime();
       _this.redrawDataPoints();
     });
+    this.graph.on("click", () => {
+      if (this.model.marker.highlight.length == 1) {
+        _this.model.marker.selectMarker(this.model.marker.highlight[0]);
+      }
+    });
   },
 
   ready() {
@@ -233,7 +238,6 @@ const LCComponent = Component.extend("linechart", {
     if (!this.all_values) return;
     this.redrawDataPoints();
   },
-
 
   updateUIStrings() {
     const _this = this;
@@ -303,7 +307,6 @@ const LCComponent = Component.extend("linechart", {
     this.dataWarningEl.style("opacity", opacity);
   },
 
-
   /*
    * UPDATE SHOW:
    * Ideally should only update when show parameters change or data changes
@@ -342,7 +345,7 @@ const LCComponent = Component.extend("linechart", {
       .attr("class", "vzb-lc-entity")
       .each(function(d, index) {
         const entity = d3.select(this);
-        if (false && _this.shadowWidth) {
+        if (_this.shadowWidth) {
           entity.append("path")
             .attr("class", "vzb-lc-line-shadow");
         } else {
@@ -420,7 +423,6 @@ const LCComponent = Component.extend("linechart", {
       .y(d => _this.yScale(d[1]));
   },
 
-
   /*
    * UPDATE TIME:
    * Ideally should only update when time or data changes
@@ -440,7 +442,6 @@ const LCComponent = Component.extend("linechart", {
     this.prev_steps = this.all_steps.filter(f => f < _this.time);
 
     this.timeUpdatedOnce = true;
-
   },
 
   profiles: {
@@ -567,7 +568,6 @@ const LCComponent = Component.extend("linechart", {
 
     const magicMargin = 20;
     this.margin.right = Math.max(this.margin.right, longestLabelWidth + this.activeProfile.text_padding + magicMargin);
-
 
     //stage
     this.height = (parseInt(this.element.style("height"), 10) - this.margin.top - this.margin.bottom) || 0;
@@ -765,7 +765,6 @@ const LCComponent = Component.extend("linechart", {
           } else {
             delete _this.cached[d[KEY]];
           }
-
 
           // the following fixes the ugly line butts sticking out of the axis line
           //if(x[0]!=null && x[1]!=null) xy.splice(1, 0, [(+x[0]*0.99+x[1]*0.01), y[0]]);
