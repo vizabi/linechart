@@ -845,6 +845,14 @@ const LCComponent = Component.extend("linechart", {
               .ease(d3.easeLinear)
               .attr("cy", d.valueY + 1);
 
+            if (_this.data.length < _this.ui.chart.labels.min_number_of_entities_when_values_hide) {
+              const label = _this.values.label[d[KEY]];
+              const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
+              const name = label.length < 13 ? label : label.substring(0, 10) + "...";
+
+              entity.select(".vzb-lc-labelname")
+                .text(name + " " + value);
+            }
 
             entity.select(".vzb-lc-label")
               .transition()
