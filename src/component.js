@@ -745,8 +745,8 @@ const LCComponent = Component.extend("linechart", {
             :
             d3.rgb(color).darker(0.5).toString();
 
-          //TODO: optimization is possible if getValues would return both x and time
-          //TODO: optimization is possible if getValues would return a limited number of points, say 1 point per screen pixel
+          //TODO: optimization is possible if getFrame would return both x and time
+          //TODO: optimization is possible if getFrame would return a limited number of points, say 1 point per screen pixel
 //          const startTime = new Date();
 
           const xy = _this.prev_steps.map((frame, i) => [frame, _this.all_values[frame] ? _this.all_values[frame].axis_y[d[KEY]] : null])
