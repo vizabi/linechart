@@ -11,8 +11,8 @@
   "name": "vizabi-linechart",
   "version": "1.0.15",
   "devDependencies": {
-    "cross-env": "^4.0.0",
-    "vizabi": "^0.21.0-20",
+    "cross-env": "^5.0.0",
+    "vizabi": "^0.23.0-28",
     "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler"
   },
   "repository": {
@@ -26,5 +26,5 @@
     "url": "https://github.com/vizabi/vizabi-linechart/issues"
   },
   "homepage": "https://github.com/vizabi/vizabi-linechart#readme",
-  "description": ""
+  "description": "Gapminder's line chart data visualisation tool. See it in action on gapminder.org/tools"
 }
