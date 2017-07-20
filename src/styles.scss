@@ -80,8 +80,9 @@
         .vzb-lc-entity {
           cursor: pointer;
         }
-        .vzb-lc-labelname {
+        .vzb-lc-labelstroke {
           paint-order: stroke;
+          fill: none;
           stroke: #FFFFFF;
           stroke-width: 3px;
         }

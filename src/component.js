@@ -377,7 +377,11 @@ const LCComponent = Component.extend("linechart", {
         const labelGroup = entity.append("g").attr("class", "vzb-lc-label");
 
         labelGroup.append("text")
-          .attr("class", "vzb-lc-labelname")
+          .attr("class", "vzb-lc-labelname vzb-lc-labelstroke")
+          .attr("dy", ".35em");
+
+        labelGroup.append("text")
+          .attr("class", "vzb-lc-labelname vzb-lc-labelfill")
           .attr("dy", ".35em");
 
         labelGroup.append("text")
@@ -404,11 +408,12 @@ const LCComponent = Component.extend("linechart", {
         const valueHideLimit = _this.ui.chart.labels.min_number_of_entities_when_values_hide;
 
         entity.select("circle").style("fill", color);
-        entity.select(".vzb-lc-labelname")
-          .style("fill", colorShadow)
+        entity.selectAll(".vzb-lc-labelname")
           .text(name + " " + (_this.data.length < valueHideLimit ? value : ""));
+        entity.select(".vzb-lc-labelfill")
+          .style("fill", colorShadow)
 
-        entity.select(".vzb-lc-label-value")
+          entity.select(".vzb-lc-label-value")
           .style("fill", colorShadow);
 
       });
@@ -850,7 +855,7 @@ const LCComponent = Component.extend("linechart", {
               const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
               const name = label.length < 13 ? label : label.substring(0, 10) + "...";
 
-              entity.select(".vzb-lc-labelname")
+              entity.selectAll(".vzb-lc-labelname")
                 .text(name + " " + value);
             }
 
