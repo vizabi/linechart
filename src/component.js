@@ -93,6 +93,9 @@ const LCComponent = Component.extend("linechart", {
       "change:marker.opacityRegular": function() {
         if (!_this._readyOnce) return;
         _this.highlightLines();
+      },
+      "change:entities.show": function() {
+        _this.values = null;
       }
     };
 
