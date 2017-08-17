@@ -94,6 +94,9 @@ const LCComponent = Component.extend("linechart", {
         if (!_this._readyOnce) return;
         _this.highlightLines();
       },
+      "change:entities.show": function() {
+        _this.values = null;
+      },
       "change:marker.color.palette": function() {
         if (!_this._readyOnce) return;
         _this.updateColors();
