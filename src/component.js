@@ -106,7 +106,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.rangeYRatio = 1;
     this.rangeYShift = 0;
-    this.lineWidthScale = d3.scale.linear().domain([0, 20]).range([7, 1]).clamp(true);
+    this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
     this.yAxis = axisSmart("left");
 
@@ -181,7 +181,7 @@ const LCComponent = Component.extend("linechart", {
       _this.parent.findChildByName("gapminder-datanotes").hide();
     });
 
-    this.wScale = d3.scale.linear()
+    this.wScale = d3.scaleLinear()
       .domain(this.model.ui.datawarning.doubtDomain)
       .range(this.model.ui.datawarning.doubtRange);
 
@@ -1091,10 +1091,10 @@ const LCComponent = Component.extend("linechart", {
       this.model.marker.axis_y.getZoomedMax() != null) {
       if ((this.model.marker.axis_y.getZoomedMin() <= 0 || this.model.marker.axis_y.getZoomedMax() <= 0)
         && this.model.marker.axis_y.scaleType == "log") {
-        this.yScale = d3.scale.genericLog()
+        this.yScale = d3.scaleGenericlog()
           .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
-        this.model.marker.axis_y.scale = d3.scale.genericLog()
+        this.model.marker.axis_y.scale = d3.scaleGenericlog()
           .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
         this.yScale = this.model.marker.axis_y.scale;
