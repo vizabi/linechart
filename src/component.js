@@ -96,6 +96,10 @@ const LCComponent = Component.extend("linechart", {
       },
       "change:entities.show": function() {
         _this.values = null;
+      },
+      "change:marker.color.palette": function() {
+        if (!_this._readyOnce) return;
+        _this.updateColors();
       }
     };
 
@@ -109,9 +113,13 @@ const LCComponent = Component.extend("linechart", {
 
     this.rangeYRatio = 1;
     this.rangeYShift = 0;
-    this.lineWidthScale = d3.scale.linear().domain([0, 20]).range([7, 1]).clamp(true);
+    this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
     this.yAxis = axisSmart("left");
+
+    this.COLOR_BLACKISH = "#333";
+    this.COLOR_WHITEISH = "#fdfdfd";
+    this.COLOR_WHITEISH_SHADE = d3.rgb(this.COLOR_WHITEISH).darker(0.5).toString();
 
     this.isDataPreprocessed = false;
     this.timeUpdatedOnce = false;
@@ -184,7 +192,7 @@ const LCComponent = Component.extend("linechart", {
       _this.parent.findChildByName("gapminder-datanotes").hide();
     });
 
-    this.wScale = d3.scale.linear()
+    this.wScale = d3.scaleLinear()
       .domain(this.model.ui.datawarning.doubtDomain)
       .range(this.model.ui.datawarning.doubtRange);
 
@@ -396,15 +404,8 @@ const LCComponent = Component.extend("linechart", {
     if (this.all_values && this.values) {
       this.entityLabels.each(function(d, index) {
         const entity = d3.select(this);
-        const color = _this.cScale(_this.values.color[d[KEY]]);
-        const colorShadow = _this.model.marker.color.which == "geo.world_4region" ?
-          _this.model.marker.color.getColorShade({
-            colorID: _this.values.color[d[KEY]],
-            shadeID: "shade"
-          })
-          :
-          d3.rgb(color).darker(0.5).toString();
-
+        const {color, colorShadow} = _this.getColorsByValue(_this.values.color[d[KEY]]);
+        
         const label = _this.values.label[d[KEY]];
         const value = _this.yAxis.tickFormat()(_this.values.axis_y[d[KEY]]);
         const name = label.length < 13 ? label : label.substring(0, 10) + "...";
@@ -431,6 +432,42 @@ const LCComponent = Component.extend("linechart", {
       .y(d => _this.yScale(d[1]));
   },
 
+  getColorsByValue(colorValue) {
+    return { 
+      color: colorValue != "" ? this.cScale(colorValue) : this.COLOR_WHITEISH,
+      colorShadow: colorValue != "" ? this.model.marker.color.getColorShade({
+          colorID: colorValue,
+          shadeID: "shade"
+        }) : this.COLOR_WHITEISH_SHADE
+    }
+  },
+
+  updateColors() {
+    const _this = this;        
+    const KEY = this.KEY;
+    const valuesColor = this.values.color;
+    
+    this.cScale = this.model.marker.color.getScale();
+    
+    this.entityLabels.each(function(d, index) {
+      const entity = d3.select(this);
+      const {color, colorShadow} = _this.getColorsByValue(valuesColor[d[KEY]]);
+
+      entity.select("circle").style("fill", color);
+      entity.select(".vzb-lc-labelfill")
+        .style("fill", colorShadow)
+      entity.select(".vzb-lc-label-value")
+        .style("fill", colorShadow);
+    });
+
+    this.entityLines.each(function(d, index) {
+      const entity = d3.select(this);
+      const {color, colorShadow} = _this.getColorsByValue(valuesColor[d[KEY]]);
+      
+      entity.select(".vzb-lc-line").style("stroke", color);
+      entity.select(".vzb-lc-line-shadow").style("stroke", colorShadow);
+    });
+  },
   /*
    * UPDATE TIME:
    * Ideally should only update when time or data changes
@@ -744,15 +781,8 @@ const LCComponent = Component.extend("linechart", {
           const entity = d3.select(this);
           const label = values.label[d[KEY]];
 
-          const color = _this.cScale(values.color[d[KEY]]);
-          const colorShadow = _this.model.marker.color.which == "geo.world_4region" ?
-            _this.model.marker.color.getColorShade({
-              colorID: values.color[d[KEY]],
-              shadeID: "shade"
-            })
-            :
-            d3.rgb(color).darker(0.5).toString();
-
+          const {color, colorShadow} = _this.getColorsByValue(values.color[d[KEY]]);
+          
           //TODO: optimization is possible if getFrame would return both x and time
           //TODO: optimization is possible if getFrame would return a limited number of points, say 1 point per screen pixel
 //          const startTime = new Date();
@@ -1094,10 +1124,10 @@ const LCComponent = Component.extend("linechart", {
       this.model.marker.axis_y.getZoomedMax() != null) {
       if ((this.model.marker.axis_y.getZoomedMin() <= 0 || this.model.marker.axis_y.getZoomedMax() <= 0)
         && this.model.marker.axis_y.scaleType == "log") {
-        this.yScale = d3.scale.genericLog()
+        this.yScale = d3.scaleGenericlog()
           .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
-        this.model.marker.axis_y.scale = d3.scale.genericLog()
+        this.model.marker.axis_y.scale = d3.scaleGenericlog()
           .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
           .range(this.yScale.range());
         this.yScale = this.model.marker.axis_y.scale;
