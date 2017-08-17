@@ -106,7 +106,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.rangeYRatio = 1;
     this.rangeYShift = 0;
-    this.lineWidthScale = d3.scale.linear().domain([0, 20]).range([7, 1]).clamp(true);
+    this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
     this.yAxis = axisSmart("left");
 
