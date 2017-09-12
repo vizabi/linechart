@@ -22,7 +22,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
       component: Vizabi.Component.get("timeslider"),
       placeholder: ".vzb-tool-timeslider",
       model: ["state.time", "state.entities", "state.marker", "ui"],
-      ui: { show_value_when_drag_play: false, axis_aligned: true }
+      ui: { show_value_when_drag_play: true, axis_aligned: false }
     }, {
       component: Vizabi.Component.get("dialogs"),
       placeholder: ".vzb-tool-dialogs",

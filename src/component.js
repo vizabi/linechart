@@ -522,7 +522,7 @@ const LCComponent = Component.extend("linechart", {
       margin: {
         top: 50,
         right: 60,
-        left: 60,
+        left: 75,
         bottom: 30
       },
       infoElHeight: 22,
@@ -554,26 +554,26 @@ const LCComponent = Component.extend("linechart", {
   timeSliderProfiles: {
     small: {
       margin: {
-        top: 9,
+        top: 7,
         right: 15,
         bottom: 10,
-        left: 10
+        left: 60
       }
     },
     medium: {
       margin: {
-        top: 9,
+        top: 10,
         right: 15,
         bottom: 10,
-        left: 20
+        left: 60
       }
     },
     large: {
       margin: {
-        top: 9,
+        top: 5,
         right: 15,
         bottom: 10,
-        left: 25
+        left: 75
       }
     }
   },
