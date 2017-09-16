@@ -434,8 +434,8 @@ const LCComponent = Component.extend("linechart", {
 
   getColorsByValue(colorValue) {
     return { 
-      color: colorValue != "" ? this.cScale(colorValue) : this.COLOR_WHITEISH,
-      colorShadow: colorValue != "" ? this.model.marker.color.getColorShade({
+      color: colorValue != null ? this.cScale(colorValue) : this.COLOR_WHITEISH,
+      colorShadow: colorValue != null ? this.model.marker.color.getColorShade({
           colorID: colorValue,
           shadeID: "shade"
         }) : this.COLOR_WHITEISH_SHADE
