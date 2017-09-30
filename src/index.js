@@ -67,11 +67,18 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
           "excludeIDs": ["tag"]
         }
       },
-      "entities_tags": {},
-      "marker_tags": {
-        "space": ["entities_tags"],
-        "label": {},
-        "hook_parent": {}
+      entities_tags: {
+        "autoconfig": {
+          "type": "entity_domain",
+          "includeOnlyIDs": ["tag"]
+        }
+      },
+      marker_tags: {
+        space: ["entities_tags"],
+        label: {
+          use: "property",
+        },
+        hook_parent: {}
       },
       "entities_allpossible": {
         "autoconfig": {
@@ -82,7 +89,11 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
       "marker_allpossible": {
         "space": ["entities_allpossible"],
         "label": {
-          "use": "property"
+          "use": "property",
+          "autoconfig": {
+            "includeOnlyIDs": ["name"],
+            "type": "string"
+          }
         }
       },
       "marker": {
@@ -100,7 +111,11 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
           "allow": { scales: ["linear", "log"] }
         },
         "label": {
-          "use": "property"
+          "use": "property",
+          "autoconfig": {
+            "includeOnlyIDs": ["name"],
+            "type": "string"
+          }
         },
         "color": {
           "syncModels": ["marker_colorlegend"]
