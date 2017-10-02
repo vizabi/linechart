@@ -108,7 +108,10 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
         },
         "axis_y": {
           "use": "indicator",
-          "allow": { scales: ["linear", "log"] }
+          "allow": { scales: ["linear", "log"] },
+          "autoconfig": {
+            "type": "measure"
+          }
         },
         "label": {
           "use": "property",
