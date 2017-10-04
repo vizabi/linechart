@@ -28,7 +28,7 @@ const LCComponent = Component.extend("linechart", {
       type: "entities"
     }, {
       name: "marker",
-      type: "model"
+      type: "marker"
     }, {
       name: "locale",
       type: "locale"
