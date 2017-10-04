@@ -54,7 +54,11 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
 
   default_model: {
     "state": {
-      "time": { },
+      "time": {
+        "autoconfig": {
+          "type": "time"
+        }
+      },
       "entities": {
         "autoconfig": {
           "type": "entity_domain",
@@ -121,7 +125,8 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
           }
         },
         "color": {
-          "syncModels": ["marker_colorlegend"]
+          "syncModels": ["marker_colorlegend"],
+          "autoconfig": {}
         }
       },
       "marker_colorlegend": {
