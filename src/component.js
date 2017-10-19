@@ -119,7 +119,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.COLOR_BLACKISH = "#333";
     this.COLOR_WHITEISH = "#fdfdfd";
-    this.COLOR_WHITEISH_SHADE = d3.rgb(this.COLOR_WHITEISH).darker(0.5).toString();
+    this.COLOR_WHITEISH_SHADE = "#555";
 
     this.isDataPreprocessed = false;
     this.timeUpdatedOnce = false;
