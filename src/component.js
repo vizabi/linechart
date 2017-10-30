@@ -51,18 +51,35 @@ const LCComponent = Component.extend("linechart", {
         if (_this.model.time.playing && utils.isTouchDevice() && !_this.tooltip.classed("vzb-hidden")) _this.tooltip.classed("vzb-hidden", true);
       },
       "change:time.start": function() {
-        if (!_this._readyOnce) return;
+        if (!_this._readyOnce || !_this.all_values || !_this.values) return;
         _this.updateShow();
+        _this.zoomToMaxMin();
+        _this.updateSize();
+        _this.redrawDataPoints();
+        _this.highlightLines();        
       },
       "change:time.end": function() {
-        if (!_this._readyOnce) return;
+        if (!_this._readyOnce || !_this.all_values || !_this.values) return;
         _this.updateShow();
+        _this.zoomToMaxMin();
+        _this.updateSize();
+        _this.redrawDataPoints();
+        _this.highlightLines();        
       },
       "change:marker": function(evt, path) {
         if (!_this._readyOnce) return;
         if (path.indexOf("domainMin") > -1 || path.indexOf("domainMax") > -1 ||
           path.indexOf("zoomedMin") > -1 || path.indexOf("zoomedMax") > -1) {
           if (!_this.yScale || !_this.xScale) return; //abort if building of the scale is in progress
+          if (path.indexOf("axis_x") > -1) {
+            const startOrigin = _this.model.time.formatDate(_this.model.marker.axis_x.getZoomedMin());
+            const endOrigin = _this.model.time.formatDate(_this.model.marker.axis_x.getZoomedMax());
+            _this.model.time.set({
+              startOrigin: startOrigin,
+              endOrigin: endOrigin
+            });
+            return;      
+          }
           _this.updateShow();
           _this.zoomToMaxMin();
           _this.updateSize();
