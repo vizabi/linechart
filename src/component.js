@@ -68,6 +68,7 @@ const LCComponent = Component.extend("linechart", {
           _this.updateSize();
           _this.updateTime();
           _this.redrawDataPoints();
+          _this.highlightLines();          
           return;
         }
         if (path.indexOf("scaleType") > -1) {
@@ -75,6 +76,7 @@ const LCComponent = Component.extend("linechart", {
           _this.zoomToMaxMin();
           _this.updateSize();
           _this.redrawDataPoints();
+          _this.highlightLines();          
         }
       },
       "change:marker.highlight": function() {
@@ -227,6 +229,7 @@ const LCComponent = Component.extend("linechart", {
         _this.updateDoubtOpacity();
         _this.zoomToMaxMin();
         _this.redrawDataPoints();
+        _this.highlightLines();
         _this.linesContainerCrop
           .on("mousemove", _this.entityMousemove.bind(_this, null, null, _this))
           .on("mouseleave", _this.entityMouseout.bind(_this, null, null, _this));
@@ -353,7 +356,7 @@ const LCComponent = Component.extend("linechart", {
     }
     this.labelsContainer.classed("small", !this.shadowWidth);
     this.entityLines = this.entityLines.enter().append("g")
-      .attr("class", "vzb-lc-entity")
+      .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
       .each(function(d, index) {
         const entity = d3.select(this);
         if (_this.shadowWidth) {
