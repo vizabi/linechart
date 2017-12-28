@@ -49,6 +49,7 @@ const LCComponent = Component.extend("linechart", {
       },
       "change:time.start": function() {
         if (!_this._readyOnce || !_this.all_values || !_this.values) return;
+        _this.updateIndicators();
         _this.updateShow();
         _this.zoomToMaxMin();
         _this.updateSize();
@@ -57,6 +58,7 @@ const LCComponent = Component.extend("linechart", {
       },
       "change:time.end": function() {
         if (!_this._readyOnce || !_this.all_values || !_this.values) return;
+        _this.updateIndicators();
         _this.updateShow();
         _this.zoomToMaxMin();
         _this.updateSize();
@@ -77,6 +79,8 @@ const LCComponent = Component.extend("linechart", {
             });
             return;      
           }
+          if (!_this.all_values || !_this.values) return;
+          _this.updateIndicators();
           _this.updateShow();
           _this.zoomToMaxMin();
           _this.updateSize();
@@ -86,6 +90,8 @@ const LCComponent = Component.extend("linechart", {
           return;
         }
         if (path.indexOf("scaleType") > -1) {
+          if (!_this.all_values || !_this.values) return;
+          _this.updateIndicators();
           _this.updateShow();
           _this.zoomToMaxMin();
           _this.updateSize();
@@ -174,8 +180,8 @@ const LCComponent = Component.extend("linechart", {
     this.projectionX = this.graph.select(".vzb-lc-projection-x");
     this.projectionY = this.graph.select(".vzb-lc-projection-y");
 
-    this.entityLines = null;
-    this.entityLabels = null;
+    this.entityLabels = this.labelsContainer.selectAll(".vzb-lc-entity");
+    this.entityLines = this.linesContainer.selectAll(".vzb-lc-entity");
     this.totalLength_1 = {};
 
     this.TIMEDIM = this.model.time.getDimension();
@@ -238,7 +244,10 @@ const LCComponent = Component.extend("linechart", {
     this.all_values = this.values = null;
     this.updateTime();
     this.updateUIStrings();
-    //this.updateShow();
+    this.updateIndicators();
+      //this.updateShow();
+    this.entityLines.remove();
+    this.entityLabels.remove();
     //null means we need to calculate all frames before we get to the callback
     this.model.marker.getFrame(null, allValues => {
       _this.all_values = allValues;
@@ -343,16 +352,12 @@ const LCComponent = Component.extend("linechart", {
   },
 
   /*
-   * UPDATE SHOW:
-   * Ideally should only update when show parameters change or data changes
+   * UPDATE INDICATORS
    */
-  updateShow() {
+  updateIndicators() {
     const _this = this;
-    const KEYS = this.KEYS;
     const KEY = this.KEY;
-    const dataKeys = this.dataKeys;
 
-    this.cached = {};
     //scales
     this.yScale = this.model.marker.axis_y.getScale();
     if (!this.splash) {
@@ -365,7 +370,20 @@ const LCComponent = Component.extend("linechart", {
     this.xAxis.tickFormat(this.model.marker.axis_x.getTickFormatter());
 
     this.collisionResolver.scale(this.yScale)
-      .KEY(KEY);
+      .KEY(KEY);  
+  },
+
+  /*
+   * UPDATE SHOW:
+   * Ideally should only update when show parameters change or data changes
+   */
+  updateShow() {
+    const _this = this;
+    const KEYS = this.KEYS;
+    const KEY = this.KEY;
+    const dataKeys = this.dataKeys;
+
+    this.cached = {};
 
     this.dataHash = {};
     this.data = this.model.marker.getKeys().map(entity => {
