@@ -24,9 +24,6 @@ const LCComponent = Component.extend("linechart", {
       name: "time",
       type: "time"
     }, {
-      name: "entities",
-      type: "entities"
-    }, {
       name: "marker",
       type: "marker"
     }, {
@@ -113,9 +110,6 @@ const LCComponent = Component.extend("linechart", {
         if (!_this._readyOnce) return;
         _this.highlightLines();
       },
-      "change:entities.show": function() {
-        _this.values = null;
-      },
       "change:marker.color.palette": function() {
         if (!_this._readyOnce) return;
         _this.updateColors();
@@ -184,7 +178,12 @@ const LCComponent = Component.extend("linechart", {
     this.entityLabels = null;
     this.totalLength_1 = {};
 
-    this.KEY = this.model.entities.getDimension();
+    this.TIMEDIM = this.model.time.getDimension();
+    this.KEYS = utils.unique(this.model.marker._getAllDimensions({ exceptType: "time" }));
+    this.KEY = this.KEYS.join(",");
+    this.dataKeys = this.model.marker.getDataKeysPerHook();
+    this.labelNames = this.model.marker.getLabelHookNames();
+
     this.collisionResolver = collisionResolver()
       .selector(".vzb-lc-label")
       .value("valueY")
@@ -229,12 +228,17 @@ const LCComponent = Component.extend("linechart", {
   },
 
   ready() {
+    const _this = this;
+    this.KEYS = utils.unique(this.model.marker._getAllDimensions({ exceptType: "time" }));
+    this.KEY = this.KEYS.join(",");
+    this.dataKeys = this.model.marker.getDataKeysPerHook();
+    this.labelNames = this.model.marker.getLabelHookNames();
+
     this.all_steps = this.model.time.getAllSteps();
     this.all_values = this.values = null;
     this.updateTime();
     this.updateUIStrings();
-    this.updateShow();
-    const _this = this;
+    //this.updateShow();
     //null means we need to calculate all frames before we get to the callback
     this.model.marker.getFrame(null, allValues => {
       _this.all_values = allValues;
@@ -344,7 +348,9 @@ const LCComponent = Component.extend("linechart", {
    */
   updateShow() {
     const _this = this;
+    const KEYS = this.KEYS;
     const KEY = this.KEY;
+    const dataKeys = this.dataKeys;
 
     this.cached = {};
     //scales
@@ -361,7 +367,12 @@ const LCComponent = Component.extend("linechart", {
     this.collisionResolver.scale(this.yScale)
       .KEY(KEY);
 
-    this.data = this.model.marker.getKeys();
+    this.dataHash = {};
+    this.data = this.model.marker.getKeys().map(entity => {
+      entity[KEY] = utils.getKey(entity, KEYS);
+      this.dataHash[entity[KEY]] = entity;
+      return entity;
+    });
     this.linesContainer.selectAll(".vzb-lc-entity").remove();
     this.entityLines = this.linesContainer.selectAll(".vzb-lc-entity").data(this.data);
 
@@ -424,20 +435,21 @@ const LCComponent = Component.extend("linechart", {
     if (this.all_values && this.values) {
       this.entityLabels.each(function(d, index) {
         const entity = d3.select(this);
-        const {color, colorShadow} = _this.getColorsByValue(_this.values.color[d[KEY]]);
+        const {color, colorShadow} = _this.getColorsByValue(_this.values.color[utils.getKey(d, dataKeys.color)]);
         
-        const label = _this.values.label[d[KEY]];
-        const value = _this.yAxis.tickFormat()(_this.values.axis_y[d[KEY]]);
-        const name = label.length < 13 ? label : label.substring(0, 10) + "...";
+        const label = _this._getLabelText(_this.values, _this.labelNames, d);
+        const value = _this.yAxis.tickFormat()(_this.values.axis_y[utils.getKey(d, dataKeys.axis_y)]);
+        const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
         const valueHideLimit = _this.ui.chart.labels.min_number_of_entities_when_values_hide;
 
         entity.select("circle").style("fill", color);
         entity.selectAll(".vzb-lc-labelname")
-          .text(name + " " + (_this.data.length < valueHideLimit ? value : ""));
+          .text(name + " " + (_this.data.length < valueHideLimit ? value : ""))
         entity.select(".vzb-lc-labelfill")
           .style("fill", colorShadow)
+        entity.append("title").text(label + " " + value);
 
-          entity.select(".vzb-lc-label-value")
+        entity.select(".vzb-lc-label-value")
           .style("fill", colorShadow);
 
       });
@@ -464,14 +476,14 @@ const LCComponent = Component.extend("linechart", {
 
   updateColors() {
     const _this = this;        
-    const KEY = this.KEY;
+    const dataKeys = this.dataKeys;
     const valuesColor = this.values.color;
     
     this.cScale = this.model.marker.color.getScale();
     
     this.entityLabels.each(function(d, index) {
       const entity = d3.select(this);
-      const {color, colorShadow} = _this.getColorsByValue(valuesColor[d[KEY]]);
+      const {color, colorShadow} = _this.getColorsByValue(valuesColor[utils.getKey(d, dataKeys.color)]);
 
       entity.select("circle").style("fill", color);
       entity.select(".vzb-lc-labelfill")
@@ -482,7 +494,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.entityLines.each(function(d, index) {
       const entity = d3.select(this);
-      const {color, colorShadow} = _this.getColorsByValue(valuesColor[d[KEY]]);
+      const {color, colorShadow} = _this.getColorsByValue(valuesColor[utils.getKey(d, dataKeys.color)]);
       
       entity.select(".vzb-lc-line").style("stroke", color);
       entity.select(".vzb-lc-line-shadow").style("stroke", colorShadow);
@@ -780,7 +792,9 @@ const LCComponent = Component.extend("linechart", {
    */
   redrawDataPoints() {
     const _this = this;
+    const KEYS = this.KEYS;
     const KEY = this.KEY;
+    const dataKeys = this.dataKeys;
 //    var values = this.values;
 
     if (!_this.all_values) return;
@@ -799,20 +813,19 @@ const LCComponent = Component.extend("linechart", {
       _this.entityLines
         .each(function(d, index) {
           const entity = d3.select(this);
-          const label = values.label[d[KEY]];
 
-          const {color, colorShadow} = _this.getColorsByValue(values.color[d[KEY]]);
+          const {color, colorShadow} = _this.getColorsByValue(values.color[utils.getKey(d, dataKeys.color)]);
           
           //TODO: optimization is possible if getFrame would return both x and time
           //TODO: optimization is possible if getFrame would return a limited number of points, say 1 point per screen pixel
 //          const startTime = new Date();
 
-          const xy = _this.prev_steps.map((frame, i) => [frame, _this.all_values[frame] ? _this.all_values[frame].axis_y[d[KEY]] : null])
+          const xy = _this.prev_steps.map((frame, i) => [frame, _this.all_values[frame] ? _this.all_values[frame].axis_y[utils.getKey(d, dataKeys.axis_y)] : null])
             .filter(d => d[1] || d[1] === 0);
 //          timer += new Date() - startTime;
           // add last point
-          if (values.axis_y[d[KEY]]) {
-            xy.push([values.axis_x[d[KEY]], values.axis_y[d[KEY]]]);
+          if (values.axis_y[utils.getKey(d, dataKeys.axis_y)]) {
+            xy.push([values.axis_x[utils.getKey(d, dataKeys.axis_x)], values.axis_y[utils.getKey(d, dataKeys.axis_y)]]);
           }
 
           if (xy.length > 0) {
@@ -903,10 +916,10 @@ const LCComponent = Component.extend("linechart", {
               .ease(d3.easeLinear)
               .attr("cy", d.valueY + 1);
 
-            if (_this.data.length < _this.ui.chart.labels.min_number_of_entities_when_values_hide) {
-              const label = _this.values.label[d[KEY]];
+            if (_this.data.length < _this.ui.chart.labels.min_number_of_entities_when_values_hide * KEYS.length) {
+              const label = _this._getLabelText(_this.values, _this.labelNames, d);
               const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
-              const name = label.length < 13 ? label : label.substring(0, 10) + "...";
+              const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
 
               entity.selectAll(".vzb-lc-labelname")
                 .text(name + " " + value);
@@ -981,8 +994,7 @@ const LCComponent = Component.extend("linechart", {
       //const nearestKey = _this.getNearestKey(_this.yScale.invert(mousePos), data.axis_y);
       const nearestKey = _this.getNearestKey(mousePos, data.axis_y, _this.yScale.bind(_this));
       resolvedValue = data.axis_y[nearestKey];
-      if (!me) me = {};
-      me[KEY] = nearestKey;
+      me = _this.dataHash[nearestKey];
       if (!_this.model.marker.isHighlighted(me)) {
         _this.model.marker.clearHighlighted();
         _this.model.marker.highlightMarker(me);
@@ -1062,6 +1074,7 @@ const LCComponent = Component.extend("linechart", {
    */
   highlightLines() {
     const _this = this;
+    const KEYS = this.KEYS;
     const KEY = this.KEY;
     const OPACITY_HIGHLT = 1.0;
     const OPACITY_HIGHLT_DIM = 0.3;
@@ -1077,7 +1090,7 @@ const LCComponent = Component.extend("linechart", {
     this.nonSelectedOpacityZero = _this.model.marker.opacitySelectDim < 0.01;
     const selected = {};
     _this.model.marker.getSelected().map(d => {
-        selected[d[KEY]] = true;
+        selected[utils.getKey(d, KEYS)] = true;
       }
     );
 //    const startTime = new Date();
@@ -1164,12 +1177,12 @@ const LCComponent = Component.extend("linechart", {
    */
   getNearestKey(val, obj, fn) {
     //const startTime = new Date();
-    const KEY = this.KEY;
+    const KEYS = this.KEYS;
     let keys = Object.keys(obj);
 
     if (this.someSelected && this.nonSelectedOpacityZero) {
       keys = this.model.marker.select.map(keyObj => {
-        return keyObj[KEY];
+        return utils.getKey(keyObj, KEYS);
       });
     }
     let resKey = keys[0];
@@ -1182,8 +1195,11 @@ const LCComponent = Component.extend("linechart", {
     }
     //console.log(new Date() - startTime);
     return resKey;
-  }
+  },
 
+  _getLabelText(values, labelNames, d) {
+    return this.KEYS.map(key => values[labelNames[key]] ? values[labelNames[key]][d[key]] : d[key]).join(", ");
+  }
 });
 
 export default LCComponent;
