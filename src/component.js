@@ -638,6 +638,7 @@ const LCComponent = Component.extend("linechart", {
     const _this = this;
     const values = this.values;
     const KEY = this.KEY;
+    const isRTL = this.model.locale.isRTL();
 
     const padding = 2;
 
@@ -735,7 +736,7 @@ const LCComponent = Component.extend("linechart", {
 
     this.yTitleEl
       .style("font-size", infoElHeight + "px")
-      .attr("transform", "translate(" + (10 - this.activeProfile.margin.left) + ", -" + this.activeProfile.yAxisTitleBottomMargin + ")");
+      .attr("transform", "translate(" + (10 - this.activeProfile.margin.left + (isRTL ? infoElHeight * 1.4 : 0 )) + ", -" + this.activeProfile.yAxisTitleBottomMargin + ")");
 
     const yTitleText = this.yTitleEl.select("text").text(this.strings.title.Y + this.strings.unit.Y);
     if (yTitleText.node().getBBox().width > this.width) yTitleText.text(this.strings.title.Y);
@@ -748,7 +749,7 @@ const LCComponent = Component.extend("linechart", {
         .attr("width", infoElHeight + "px")
         .attr("height", infoElHeight + "px");
       this.yInfoEl.attr("transform", "translate("
-        + (titleBBox.x + t.translateX + titleBBox.width + infoElHeight * 0.4) + ","
+        + (isRTL ? 10 - this.activeProfile.margin.left : titleBBox.x + t.translateX + titleBBox.width + infoElHeight * 0.4) + ","
         + (t.translateY - infoElHeight * 0.8) + ")");
     }
 
@@ -760,7 +761,7 @@ const LCComponent = Component.extend("linechart", {
       .attr("y", -warnBB.height * 0.65);
 
     this.dataWarningEl
-      .attr("transform", "translate(" + (this.width + warnBB.width + warnBB.height * 2) +
+      .attr("transform", "translate(" + (this.width + this.margin.right * 0.85) +
         ",-" + this.activeProfile.yAxisTitleBottomMargin + ")")
       .select("text");
 
