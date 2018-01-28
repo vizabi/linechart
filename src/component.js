@@ -114,9 +114,13 @@ const LCComponent = Component.extend("linechart", {
         if (!_this._readyOnce) return;
         _this.highlightLines();
       },
-      "change:marker.color.palette": function() {
-        if (!_this._readyOnce) return;
-        _this.updateColors();
+      "change:marker.color": function() {
+        if (!_this._ready) return;
+        _this.model.marker.getFrame(_this.model.time.value, (frame, time) => {
+          if (!_this._frameIsValid(frame)) return utils.warn("change:marker.color: empty data received from marker.getFrame(). doing nothing");
+          _this.values = frame;
+          _this.updateColors();
+        });
       }
     };
 
@@ -484,7 +488,7 @@ const LCComponent = Component.extend("linechart", {
 
   updateColors() {
     const _this = this;        
-    const dataKeys = this.dataKeys;
+    const dataKeys = this.dataKeys = this.model.marker.getDataKeysPerHook();
     const valuesColor = this.values.color;
     
     this.cScale = this.model.marker.color.getScale();
@@ -803,7 +807,7 @@ const LCComponent = Component.extend("linechart", {
     const _this = this;
     const KEYS = this.KEYS;
     const KEY = this.KEY;
-    const dataKeys = this.dataKeys;
+    const dataKeys = this.dataKeys = this.model.marker.getDataKeysPerHook();
 //    var values = this.values;
 
     if (!_this.all_values) return;
