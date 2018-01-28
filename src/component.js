@@ -38,10 +38,8 @@ const LCComponent = Component.extend("linechart", {
     this.model_binds = {
       "change:time.value": function() {
         if (!_this._readyOnce) return;
-        _this.model.marker.getFrame(_this.model.time.value, (frame, time) => {
-          if (!_this._frameIsValid(frame)) return utils.warn("change:time.value: empty data received from marker.getFrame(). doing nothing");
-          _this.frameChanged(frame, time);
-        });
+        _this.updateTime();
+        _this.redrawDataPoints();          
       },
       "change:time.playing": function() {
         // hide tooltip on touch devices when playing
@@ -273,14 +271,6 @@ const LCComponent = Component.extend("linechart", {
     || Object.keys(frame.axis_y).length === 0
     || Object.keys(frame.axis_x).length === 0
     || Object.keys(frame.color).length === 0);
-  },
-
-  frameChanged(frame, time) {
-//    if (time.toString() != this.model.time.value.toString()) return; // frame is outdated
-    this.frame = frame;
-    this.updateTime();
-    if (!this.all_values) return;
-    this.redrawDataPoints();
   },
 
   updateUIStrings() {
@@ -819,7 +809,7 @@ const LCComponent = Component.extend("linechart", {
     if (!_this.all_values) return;
     this.model.marker.getFrame(this.time, (values, time) => {
 
-      if (!_this._frameIsValid(values)) return;
+      if (!_this._frameIsValid(values)) return utils.warn("redrawDataPoints(): empty data received from marker.getFrame(). doing nothing");
       _this.values = values;
       if (!_this.timeUpdatedOnce) {
         _this.updateTime();
