@@ -71,34 +71,18 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
           "excludeIDs": ["tag"]
         }
       },
-      entities_tags: {
+      "entities_tags": {
         "autoconfig": {
           "type": "entity_domain",
           "includeOnlyIDs": ["tag"]
         }
       },
-      marker_tags: {
-        space: ["entities_tags"],
-        label: {
-          use: "property",
-        },
-        hook_parent: {}
-      },
-      "entities_allpossible": {
-        "autoconfig": {
-          "type": "entity_domain",
-          "excludeIDs": ["tag"]
-        }
-      },
-      "marker_allpossible": {
-        "space": ["entities_allpossible"],
+      "marker_tags": {
+        "space": ["entities_tags"],
         "label": {
           "use": "property",
-          "autoconfig": {
-            "includeOnlyIDs": ["name"],
-            "type": "string"
-          }
-        }
+        },
+        "hook_parent": {}
       },
       "marker": {
         "space": ["entities", "time"],
@@ -164,11 +148,12 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
         doubtDomain: [],
         doubtRange: []
       },
-      "buttons": ["colors", "find", "show", "moreoptions", "fullscreen", "presentation"],
+      "buttons": ["colors", "find", "moreoptions", "fullscreen", "presentation"],
       "dialogs": {
-        "popup": ["colors", "find", "show", "moreoptions"],
-        "sidebar": ["colors", "show"],
-        "moreoptions": ["opacity", "speed", "axes", "colors", "presentation", "about"]
+        "popup": ["colors", "find", "moreoptions"],
+        "sidebar": ["colors", "find"],
+        "moreoptions": ["opacity", "speed", "axes", "colors", "presentation", "about"],
+        "dialog": {"find": {"panelMode": "show"}}
       },
       "presentation": false
     }
