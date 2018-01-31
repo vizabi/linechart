@@ -190,7 +190,6 @@ const LCComponent = Component.extend("linechart", {
     this.KEYS = utils.unique(this.model.marker._getAllDimensions({ exceptType: "time" }));
     this.KEY = this.KEYS.join(",");
     this.dataKeys = this.model.marker.getDataKeysPerHook();
-    this.labelNames = this.model.marker.getLabelHookNames();
 
     this.collisionResolver = collisionResolver()
       .selector(".vzb-lc-label")
@@ -240,7 +239,6 @@ const LCComponent = Component.extend("linechart", {
     this.KEYS = utils.unique(this.model.marker._getAllDimensions({ exceptType: "time" }));
     this.KEY = this.KEYS.join(",");
     this.dataKeys = this.model.marker.getDataKeysPerHook();
-    this.labelNames = this.model.marker.getLabelHookNames();
 
     this.all_steps = this.model.time.getAllSteps();
     this.all_values = this.values = null;
@@ -449,7 +447,7 @@ const LCComponent = Component.extend("linechart", {
         const entity = d3.select(this);
         const {color, colorShadow} = _this.getColorsByValue(_this.values.color[utils.getKey(d, dataKeys.color)]);
         
-        const label = _this._getLabelText(_this.values, _this.labelNames, d);
+        const label = _this.model.marker.getMarksLabelText(d, _this.values);
         const value = _this.yAxis.tickFormat()(_this.values.axis_y[utils.getKey(d, dataKeys.axis_y)]);
         const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
         const valueHideLimit = _this.ui.chart.labels.min_number_of_entities_when_values_hide;
@@ -930,7 +928,7 @@ const LCComponent = Component.extend("linechart", {
               .attr("cy", d.valueY + 1);
 
             if (_this.data.length < _this.ui.chart.labels.min_number_of_entities_when_values_hide * KEYS.length) {
-              const label = _this._getLabelText(_this.values, _this.labelNames, d);
+              const label = _this.model.marker.getMarksLabelText(d, _this.values);
               const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
               const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
 
@@ -1208,10 +1206,6 @@ const LCComponent = Component.extend("linechart", {
     }
     //console.log(new Date() - startTime);
     return resKey;
-  },
-
-  _getLabelText(values, labelNames, d) {
-    return this.KEYS.map(key => values[labelNames[key]] ? values[labelNames[key]][d[key]] : d[key]).join(", ");
   }
 });
 
