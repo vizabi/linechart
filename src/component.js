@@ -447,7 +447,7 @@ const LCComponent = Component.extend("linechart", {
         const entity = d3.select(this);
         const {color, colorShadow} = _this.getColorsByValue(_this.values.color[utils.getKey(d, dataKeys.color)]);
         
-        const label = _this.model.marker.getMarksLabelText(d, _this.values);
+        const label = _this.model.marker.getCompoundLabelText(d, _this.values);
         const value = _this.yAxis.tickFormat()(_this.values.axis_y[utils.getKey(d, dataKeys.axis_y)]);
         const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
         const valueHideLimit = _this.ui.chart.labels.min_number_of_entities_when_values_hide;
@@ -928,9 +928,9 @@ const LCComponent = Component.extend("linechart", {
               .attr("cy", d.valueY + 1);
 
             if (_this.data.length < _this.ui.chart.labels.min_number_of_entities_when_values_hide * KEYS.length) {
-              const label = _this.model.marker.getMarksLabelText(d, _this.values);
+              const label = _this.model.marker.getCompoundLabelText(d, _this.values);
               const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
-              const name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
+              const name = label.length < 13 ? label : label.substring(0, 12) + "…";//"…";
 
               entity.selectAll(".vzb-lc-labelname")
                 .text(name + " " + value);
