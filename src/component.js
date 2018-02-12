@@ -835,7 +835,7 @@ const LCComponent = Component.extend("linechart", {
             .filter(d => d[1] || d[1] === 0);
 //          timer += new Date() - startTime;
           // add last point
-          if (values.axis_y[utils.getKey(d, dataKeys.axis_y)]) {
+          if (values.axis_y[utils.getKey(d, dataKeys.axis_y)] || values.axis_y[utils.getKey(d, dataKeys.axis_y)] === 0) {
             xy.push([values.axis_x[utils.getKey(d, dataKeys.axis_x)], values.axis_y[utils.getKey(d, dataKeys.axis_y)]]);
           }
 
