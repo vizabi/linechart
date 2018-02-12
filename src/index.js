@@ -132,6 +132,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
     locale: { },
     "ui": {
       "chart": {
+        "curve": "curveMonotoneX",
         "labels": {
           "min_number_of_entities_when_values_hide": 2 //values hide when showing 2 entities or more
         },

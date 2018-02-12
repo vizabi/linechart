@@ -469,7 +469,7 @@ const LCComponent = Component.extend("linechart", {
     this.line = d3.line()
     //see https://bl.ocks.org/mbostock/4342190
     //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
-      .curve(d3.curveMonotoneX)
+      .curve(d3[this.ui.chart.curve || "curveMonotoneX"])
       .x(d => _this.xScale(d[0]))
       .y(d => _this.yScale(d[1]));
   },
