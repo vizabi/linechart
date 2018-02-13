@@ -1003,7 +1003,7 @@ const LCComponent = Component.extend("linechart", {
     this.model.marker.getFrame(resolvedTime, data => {
       if (!_this._frameIsValid(data)) return;
       //const nearestKey = _this.getNearestKey(_this.yScale.invert(mousePos), data.axis_y);
-      const nearestKey = _this.getNearestKey(mousePos, data.axis_y, _this.yScale.bind(_this));
+      const nearestKey = _this.getNearestKey(mousePos, _this.dataHash, data.axis_y, _this.yScale.bind(_this));
       resolvedValue = data.axis_y[nearestKey];
       me = _this.dataHash[nearestKey];
       if (!_this.model.marker.isHighlighted(me)) {
@@ -1184,9 +1184,9 @@ const LCComponent = Component.extend("linechart", {
 
 
   /**
-   * Returns key from obj which value has the smallest difference with val
+   * Returns key from obj which value from values has the smallest difference with val
    */
-  getNearestKey(val, obj, fn) {
+  getNearestKey(val, obj, values, fn) {
     //const startTime = new Date();
     const KEYS = this.KEYS;
     let keys = Object.keys(obj);
@@ -1200,7 +1200,7 @@ const LCComponent = Component.extend("linechart", {
     for (let i = 1; i < keys.length; i++) {
       let key = keys[i];
       
-      if (Math.abs((fn ? fn(obj[key]) : obj[key]) - val) < Math.abs((fn ? fn(obj[resKey]) : obj[resKey]) - val)) {
+      if (Math.abs((fn ? fn(values[key]) : values[key]) - val) < Math.abs((fn ? fn(values[resKey]) : values[resKey]) - val)) {
         resKey = key;
       }
     }
