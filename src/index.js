@@ -85,6 +85,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
         "hook_parent": {}
       },
       "marker": {
+        limit: 5000,
         "space": ["entities", "time"],
         "axis_x": {
           "use": "indicator",
