@@ -44,6 +44,14 @@ const LCComponent = Component.extend("linechart", {
       "change:time.playing": function() {
         // hide tooltip on touch devices when playing
         if (_this.model.time.playing && utils.isTouchDevice() && !_this.tooltip.classed("vzb-hidden")) _this.tooltip.classed("vzb-hidden", true);
+  
+        if (!_this.ui.chart.hideXAxisValue && _this.model.time.playing && _this.time - _this.model.time.start === 0) {
+          _this.xAxisEl.call(
+            _this.xAxis
+              .highlightTransDuration(0)
+              .highlightValue(_this.time)
+          );
+        }
       },
       "change:time.start": function() {
         if (!_this._readyOnce || !_this.all_values || !_this.values) return;
@@ -962,6 +970,10 @@ const LCComponent = Component.extend("linechart", {
         );
         _this.verticalNow.style("opacity", 1);
       } else {
+        if (!_this.ui.chart.hideXAxisValue) _this.xAxisEl.call(
+          _this.xAxis
+            .highlightValue("none")
+        );
         _this.verticalNow.style("opacity", 0);
       }
 
