@@ -34,7 +34,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
     }, {
       component: Vizabi.Component.get("treemenu"),
       placeholder: ".vzb-tool-treemenu",
-      model: ["state.marker", "state.time", "locale"]
+      model: ["state.marker", "state.time", "locale", "ui"]
     }, {
       component: Vizabi.Component.get("datawarning"),
       placeholder: ".vzb-tool-datawarning",
