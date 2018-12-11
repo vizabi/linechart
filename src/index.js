@@ -137,7 +137,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
         doubtDomain: [],
         doubtRange: []
       },
-      "buttons": ["colors", "find", "moreoptions", "fullscreen", "presentation"],
+      "buttons": ["colors", "find", "moreoptions", "presentation", "sidebarcollapse", "fullscreen"],
       "dialogs": {
         "popup": ["colors", "find", "moreoptions"],
         "sidebar": ["colors", "find"],
