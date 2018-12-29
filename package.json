@@ -9,7 +9,7 @@
     "build"
   ],
   "name": "vizabi-linechart",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "devDependencies": {
     "cross-env": "^5.0.0",
     "vizabi": "latest",

@@ -129,6 +129,10 @@ const LCComponent = Component.extend("linechart", {
           _this.values = frame;
           _this.updateColors();
         });
+      },
+      "change:ui.chart.showForecastOverlay": function() {
+        if (!_this._readyOnce) return;
+        _this._updateForecastOverlay();
       }
     };
 
@@ -181,6 +185,8 @@ const LCComponent = Component.extend("linechart", {
     this.linesContainer = this.graph.select(".vzb-lc-lines");
     this.labelsContainerCrop = this.graph.select(".vzb-lc-labels-crop");
     this.labelsContainer = this.graph.select(".vzb-lc-labels");
+    
+    this.forecastOverlay = this.element.select(".vzb-lc-forecastoverlay");
 
     this.dataWarningEl = this.graph.select(".vzb-data-warning");
 
@@ -528,6 +534,7 @@ const LCComponent = Component.extend("linechart", {
     const time_1 = (this.time === null) ? this.model.time.value : this.time;
     this.time = this.model.time.value;
     this.duration = this.model.time.playing && (this.time - time_1 > 0) ? this.model.time.delayAnimations : 0;
+    this._updateForecastOverlay();
 
     const timeDim = this.model.time.getDimension();
     const filter = {};
@@ -537,6 +544,10 @@ const LCComponent = Component.extend("linechart", {
     this.prev_steps = this.all_steps.filter(f => f < _this.time);
 
     this.timeUpdatedOnce = true;
+  },
+  
+  _updateForecastOverlay() {
+    this.forecastOverlay.classed("vzb-hidden", (this.model.time.value <= this.model.time.endBeforeForecast) || !this.model.time.endBeforeForecast || !this.model.ui.chart.showForecastOverlay);
   },
 
   profiles: {
