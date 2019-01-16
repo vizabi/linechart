@@ -141,7 +141,7 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
       "dialogs": {
         "popup": ["colors", "find", "moreoptions"],
         "sidebar": ["colors", "find"],
-        "moreoptions": ["opacity", "speed", "axes", "colors", "presentation", "about"],
+        "moreoptions": ["opacity", "speed", "axes", "colors", "presentation", "technical", "about"],
         "dialog": {"find": {"panelMode": "show"}}
       },
       "presentation": false
