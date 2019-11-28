@@ -1,8 +1,8 @@
 {
   "main": "build/linechart.js",
   "scripts": {
-    "link": "npm link ../vizabi",
-    "build": "cross-env NODE_ENV=production webpack --progress",
+    "link": "npm link ../vizabi-shared-components",
+    "build": "cross-env NODE_ENV=production rollup -c",
     "deploy": "tool-deploy"
   },
   "files": [
@@ -12,8 +12,7 @@
   "version": "2.3.1",
   "devDependencies": {
     "cross-env": "^5.0.0",
-    "vizabi": "latest",
-    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler"
+    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler#daedead"
   },
   "repository": {
     "type": "git",

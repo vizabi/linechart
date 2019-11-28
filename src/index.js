@@ -1,58 +1,78 @@
 import "./styles.scss";
-import component from "./component";
+import { 
+  BaseComponent,
+  TimeSlider,
+  DataNotes,
+  LocaleService,
+  LayoutService,
+  TreeMenu,
+  SteppedSlider,
+  ButtonList 
+} from "VizabiSharedComponents";
+import VizabiLineChart from "./component.js";
 
 const VERSION_INFO = { version: __VERSION, build: __BUILD };
 
-// LINE CHART TOOL
-const LineChart = Vizabi.Tool.extend("LineChart", {
-  /**
-   * Initialized the tool
-   * @param {Object} placeholder Placeholder element for the tool
-   * @param {Object} external_model Model as given by the external page
-   */
-  init(placeholder, external_model) {
+export default class LineChart extends BaseComponent {
 
-    this.name = "linechart";
-
-    this.components = [{
-      component,
-      placeholder: ".vzb-tool-viz",
-      model: ["state.time", "state.marker", "locale", "ui"] //pass models to component
-    }, {
-      component: Vizabi.Component.get("timeslider"),
-      placeholder: ".vzb-tool-timeslider",
-      model: ["state.time", "state.marker", "ui"],
-      ui: { show_value_when_drag_play: true, axis_aligned: false }
-    }, {
-      component: Vizabi.Component.get("dialogs"),
-      placeholder: ".vzb-tool-dialogs",
-      model: ["state", "ui", "locale"]
-    }, {
-      component: Vizabi.Component.get("buttonlist"),
-      placeholder: ".vzb-tool-buttonlist",
-      model: ["state", "ui", "locale"]
-    }, {
-      component: Vizabi.Component.get("treemenu"),
-      placeholder: ".vzb-tool-treemenu",
-      model: ["state.marker", "state.time", "locale", "ui"]
-    }, {
-      component: Vizabi.Component.get("datawarning"),
-      placeholder: ".vzb-tool-datawarning",
-      model: ["locale"]
-    }, {
-      component: Vizabi.Component.get("datanotes"),
-      placeholder: ".vzb-tool-datanotes",
-      model: ["state.marker", "locale"]
-    }, {
-      component: Vizabi.Component.get("steppedspeedslider"),
-      placeholder: ".vzb-tool-stepped-speed-slider",
-      model: ["state.time", "locale"]
+  constructor(config){
+    config.subcomponents = [{
+      type: VizabiLineChart,
+      placeholder: ".vzb-linechart",
+      //model: this.model
+      name: "chart"
+    },{
+      type: TimeSlider,
+      placeholder: ".vzb-timeslider",
+      name: "time-slider"
+      //model: this.model
+    },{
+      type: SteppedSlider,
+      placeholder: ".vzb-speedslider",
+      name: "speed-slider"
+      //model: this.model
+    },{
+      type: TreeMenu,
+      placeholder: ".vzb-treemenu",
+      name: "tree-menu"
+      //model: this.model
+    },{
+      type: DataNotes,
+      placeholder: ".vzb-datanotes",
+      //model: this.model
+    },{
+      type: ButtonList,
+      placeholder: ".vzb-buttonlist",
+      name: "buttons"
+      //model: this.model
     }];
 
-    this._super(placeholder, external_model);
-  },
+    config.template = `
+      <div class="vzb-linechart"></div>
+      <div class="vzb-animationcontrols">
+        <div class="vzb-timeslider"></div>
+        <div class="vzb-speedslider"></div>
+      </div>
+      <div class="vzb-sidebar">
+        <div class="vzb-buttonlist"></div>
+      </div>
+      <div class="vzb-treemenu"></div>
+      <div class="vzb-datanotes"></div>
+    `;
 
-  default_model: {
+    config.services = {
+      locale: new LocaleService(),
+      layout: new LayoutService(config)
+    };
+
+    //register locale service in the marker model
+    config.model.config.data.locale = config.services.locale;
+
+    super(config);
+  }
+}
+  
+LineChart.default_model = {
     "state": {
       "time": {
         "autoconfig": {
@@ -146,9 +166,8 @@ const LineChart = Vizabi.Tool.extend("LineChart", {
       },
       "presentation": false
     }
-  },
+  }
 
-  versionInfo: VERSION_INFO
-});
+  LineChart.versionInfo = VERSION_INFO
 
-export default LineChart;
+
