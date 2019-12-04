@@ -227,16 +227,14 @@ export default class VizabiLineChart extends BaseComponent {
     this.COLOR_WHITEISH = "#fdfdfd";
     this.COLOR_WHITEISH_SHADE = "#555";
 
-    this.getNearestKey = utils.memoize(this._getNearestKey);
-
     this.DOM.graph.on("click", () => {
       const {
-        selected,
-        highlighted
+        selected: { data: { filter: selectedFilter } },
+        highlighted: { data: { filter: highlightedFilter} }
       } = this.MDL;
-      if (highlighted.any()) {
-        selected.toggle(
-          highlighted.markers.keys().next().value
+      if (highlightedFilter.any()) {
+        selectedFilter.toggle(
+          highlightedFilter.markers.keys().next().value
         );
       }
     });
@@ -249,8 +247,8 @@ export default class VizabiLineChart extends BaseComponent {
   draw() {
     this.MDL = {
       frame: this.model.encoding.get("frame"),
-      selected: this.model.encoding.get("selected").data.filter,
-      highlighted: this.model.encoding.get("highlighted").data.filter,
+      selected: this.model.encoding.get("selected"),
+      highlighted: this.model.encoding.get("highlighted"),
       x: this.model.encoding.get("x"),
       y: this.model.encoding.get("y"),
       color: this.model.encoding.get("color"),
@@ -265,8 +263,8 @@ export default class VizabiLineChart extends BaseComponent {
   
     this.yAxis.tickFormat(this.localise);
     this.xAxis.tickFormat(this.localise);
-
-    this.collisionResolver.scale(this.yScale)
+    
+    this.collisionResolver.scale(this.yScale);
 
     this.TIMEDIM = this.MDL.frame.data.concept;
     this.KEYS = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
@@ -472,7 +470,6 @@ export default class VizabiLineChart extends BaseComponent {
     const KEYS = this.KEYS;
     const KEY = this.KEY;
     const {
-      linesContainer,
       labelsContainer,
     } = this.DOM;
     let {
@@ -480,7 +477,9 @@ export default class VizabiLineChart extends BaseComponent {
       entityLabels
     } = this.DOM;
     
-    const { frame, highlighted } = this.MDL;
+    const {
+      frame
+    } = this.MDL;
 
     this.cached = {};
 
@@ -491,8 +490,8 @@ export default class VizabiLineChart extends BaseComponent {
         d.shiftIndex = frame.stepArray.findIndex(step => step - d.values[0][TIMEDIM] >= 0);
         return d;
       });
-    entityLines.remove();
     entityLines = entityLines.data(this.data);
+    entityLines.exit().remove();
 
     this.lineWidth = this.lineWidthScale(this.data.length);
     if (this.lineWidth >= 2) {
@@ -518,15 +517,15 @@ export default class VizabiLineChart extends BaseComponent {
       })
       .merge(entityLines);
     
-    entityLabels.remove();
     entityLabels = entityLabels.data(this.data);
+    entityLabels.exit().remove();
     this.DOM.entityLabels = entityLabels = entityLabels.enter().append("g")
       .attr("class", "vzb-lc-entity")
       .on("mouseover", d => {
-        highlighted.set(d);
+        _this.MDL.highlighted.data.filter.set(d);
       })
       .on("mouseout", d => {
-        highlighted.delete(d);
+        _this.MDL.highlighted.data.filter.delete(d);
       })
       .each(function(d, index) {
         const entity = d3.select(this);
@@ -579,9 +578,10 @@ export default class VizabiLineChart extends BaseComponent {
    * Here plotting happens
    */
   _redrawDataPoints() {
-    //this.services.layout.width + this.services.layout.height;
     this.services.layout.size;
-    
+    this.MDL.x.scale.type;
+    this.MDL.y.scale.type;
+
     const _this = this;
     const KEYS = this.KEYS;
     const KEY = this.KEY;
@@ -755,7 +755,6 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   _updateLayoutProfile() {
-    //this.services.layout.width + this.services.layout.height;
     this.services.layout.size;
 
     this.profileConstants = this.services.layout.getProfileConstants(PROFILE_CONSTANTS, PROFILE_CONSTANTS_FOR_PROJECTOR);
@@ -770,7 +769,6 @@ export default class VizabiLineChart extends BaseComponent {
    * Ideally, it contains only operations related to size
    */
   _updateSize() {
-    //this.services.layout.width + this.services.layout.height;
     this.services.layout.size;
 
     const {
@@ -828,12 +826,12 @@ export default class VizabiLineChart extends BaseComponent {
       .attr("r", this.shadowWidth ? lollipopRadius : lollipopRadius * 0.8);
 
     const magicMargin = 20;
-    margin.right = Math.max(margin.right, longestLabelWidth + text_padding + magicMargin);
-    this.services.layout.setHGrid([this.width - margin.right]);
+    const marginRightAdjusted = Math.max(margin.right, longestLabelWidth + text_padding + magicMargin);
+    this.services.layout.setHGrid([this.width - marginRightAdjusted]);
 
     //stage
     this.cropHeight = (this.height - margin.top - margin.bottom) || 0;
-    this.cropWidth = (this.width - margin.left - margin.right) || 0;
+    this.cropWidth = (this.width - margin.left - marginRightAdjusted) || 0;
 
     //if (this.cropHeight <= 0 || this.cropWidth <= 0) return utils.warn("Line chart updateSize() abort: vizabi container is too little or has display:none");
     
@@ -842,7 +840,7 @@ export default class VizabiLineChart extends BaseComponent {
       .attr("height", Math.max(0, this.cropHeight));
 
     labelsContainerCrop
-      .attr("width", this.cropWidth + margin.right)
+      .attr("width", this.cropWidth + marginRightAdjusted)
       .attr("height", Math.max(0, this.cropHeight));
 
     this.collisionResolver.height(this.cropHeight);
@@ -863,8 +861,7 @@ export default class VizabiLineChart extends BaseComponent {
         scaleType: y.scale.type,
         toolMargin: margin,
         limitMaxTickNumber: 6,
-        viewportLength: this.cropHeight,
-        formatter: this.localise
+        viewportLength: this.cropHeight
       });
 
     this.xAxis.scale(this.xScale)
@@ -877,7 +874,6 @@ export default class VizabiLineChart extends BaseComponent {
         limitMaxTickNumber: limitMaxTickNumberX,
         toolMargin: margin,
         bump: text_padding * 2,
-        formatter: this.localise
         //showOuter: true
       });
 
@@ -909,7 +905,7 @@ export default class VizabiLineChart extends BaseComponent {
       .attr("y", -warnBB.height * 0.65);
 
     dataWarningEl
-      .attr("transform", "translate(" + (this.cropWidth + margin.right * 0.85) +
+      .attr("transform", "translate(" + (this.cropWidth + marginRightAdjusted * 0.85) +
         ",-" + yAxisTitleBottomMargin + ")")
       .select("text").text(this.localise("hints/dataWarning"));
 
@@ -971,7 +967,7 @@ export default class VizabiLineChart extends BaseComponent {
     const KEY = _this.KEY;
     const {
       frame,
-      highlighted
+      highlighted: { data: { filter: highlightedFilter } },
     } = this.MDL;
 
 
@@ -988,13 +984,15 @@ export default class VizabiLineChart extends BaseComponent {
     //if (!utils.isDate(resolvedTime)) resolvedTime = this.time.parse(resolvedTime);
 
     const data = _this.model.getDataMapByFrameValue(resolvedTime);
-    const nearestKey = _this.getNearestKey(mousePos, data, "y", _this.yScale.bind(_this));
+    const nearestKey = _this._getNearestKey(mousePos, data, "y", _this.yScale.bind(_this));
     if (!data.hasByObjOrStr(undefined, nearestKey)) return;
     const resolvedValue = data.getByObjOrStr(undefined, nearestKey)["y"];
     const hoveringNow = {[KEY]: nearestKey};
-    if (!highlighted.has(hoveringNow)) {
-      highlighted.config.markers = {};
-      highlighted.set(hoveringNow)
+    if (!highlightedFilter.has(hoveringNow)) {
+      mobx.action(() => {
+        highlightedFilter.config.markers = {};
+        highlightedFilter.set(hoveringNow);
+      })();
     }
     _this.hoveringNow = hoveringNow;
 
@@ -1014,7 +1012,7 @@ export default class VizabiLineChart extends BaseComponent {
     if (_this.state.chart.whenHovering.showTooltip) {
       //position tooltip
       tooltip
-      //.style("right", (_this.cropWidth - scaledTime + _this.margin.right ) + "px")
+      //.style("right", (_this.cropWidth - scaledTime + _this.marginRightAdjusted ) + "px")
         .style("left", (scaledTime + _this.margin.left) + "px")
         .style("bottom", (_this.cropHeight - scaledValue + _this.margin.bottom) + "px")
         .text(_this.yAxis.tickFormat()(resolvedValue))
@@ -1067,7 +1065,7 @@ export default class VizabiLineChart extends BaseComponent {
       DOM.xAxisEl.call(_this.xAxis.highlightValue(_this.time));
       DOM.yAxisEl.call(_this.yAxis.highlightValue("none"));
 
-      _this.MDL.highlighted.delete(_this.hoveringNow);
+      if (_this.hoveringNow) _this.MDL.highlighted.data.filter.delete(_this.hoveringNow);
 
       _this.hoveringNow = null;
     }, 300);
@@ -1091,23 +1089,23 @@ export default class VizabiLineChart extends BaseComponent {
       entityLabels
     } = this.DOM;
     const {
-      selected,
-      highlighted
+      selected: { data: { filter: selectedFilter } },
+      highlighted: { data: { filter: highlightedFilter } },
     } = this.MDL;
     
-    const someHighlighted = (highlighted.any());
-    this.someSelected = (selected.any());
+    const someHighlighted = (highlightedFilter.any());
+    this.someSelected = (selectedFilter.any());
 
     // when pointer events need update...
 
     this.nonSelectedOpacityZero = OPACITY_SELECT_DIM < 0.01;
     const selectedHash = {};
-    selected.markers.forEach((v, k) => {
+    selectedFilter.markers.forEach((v, k) => {
         selectedHash[k] = true;
       }
     );
     entityLines.style("opacity", (d) => {
-      if (highlighted.has(d)) return OPACITY_HIGHLT;
+      if (highlightedFilter.has(d)) return OPACITY_HIGHLT;
       if (_this.someSelected) {
         return selectedHash[d[KEY]] ? OPACITY_SELECT : OPACITY_SELECT_DIM;
       }
@@ -1115,7 +1113,7 @@ export default class VizabiLineChart extends BaseComponent {
       return OPACITY_REGULAR;
     });
     entityLabels.style("opacity", (d) => {
-      if (highlighted.has(d)) {
+      if (highlightedFilter.has(d)) {
         d.sortValue = 1;
         return OPACITY_HIGHLT;
       } else {
@@ -1174,7 +1172,7 @@ export default class VizabiLineChart extends BaseComponent {
    */
   _getNearestKey(val, values, propName, fn) {
     const keys = (this.someSelected && this.nonSelectedOpacityZero) ?
-      [...this.MDL.selected.markers.keys()].filter(key => values.hasByObjOrStr(undefined, key))
+      [...this.MDL.selected.data.filter.markers.keys()].filter(key => values.hasByObjOrStr(undefined, key))
       :
       [...values.keys()];
 
