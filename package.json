@@ -12,6 +12,7 @@
   "version": "2.3.1",
   "devDependencies": {
     "cross-env": "^5.0.0",
+    "vizabi-shared-components": "../vizabi-shared-components",
     "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler#daedead"
   },
   "repository": {
