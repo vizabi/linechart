@@ -1,20 +1,17 @@
 {
-  "main": "build/linechart.js",
+  "name": "vizabi-linechart",
+  "version": "3.0.0",
+  "description": "Line chart tool for Vizabi 📊",
   "scripts": {
     "link": "npm link ../vizabi-shared-components",
+    "start": "rollup -c",
     "build": "cross-env NODE_ENV=production rollup -c",
     "deploy": "tool-deploy"
   },
+  "main": "build/linechart.js",
   "files": [
     "build"
   ],
-  "name": "vizabi-linechart",
-  "version": "2.3.1",
-  "devDependencies": {
-    "cross-env": "^5.0.0",
-    "vizabi-shared-components": "../vizabi-shared-components",
-    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler#daedead"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vizabi/vizabi-linechart.git"
@@ -26,5 +23,9 @@
     "url": "https://github.com/vizabi/vizabi-linechart/issues"
   },
   "homepage": "https://github.com/vizabi/vizabi-linechart#readme",
-  "description": "Gapminder's line chart data visualisation tool. See it in action on gapminder.org/tools"
+  "devDependencies": {
+    "cross-env": "^5.0.0",
+    "vizabi-shared-components": "../vizabi-shared-components",
+    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler#switch_to_rollup"
+  }
 }
