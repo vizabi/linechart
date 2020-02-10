@@ -25,6 +25,8 @@ before_install:
 - ssh-add /tmp/deploy_rsa
 - npm install -g npm@latest
 - sudo pip install s3cmd
+install:
+- npm install --ignore-scripts
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
