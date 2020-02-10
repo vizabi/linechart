@@ -1,6 +1,6 @@
 {
   "name": "vizabi-linechart",
-  "version": "3.0.0",
+  "version": "2.3.0",
   "description": "Line chart tool for Vizabi 📊",
   "scripts": {
     "link": "npm link ../vizabi-shared-components",
