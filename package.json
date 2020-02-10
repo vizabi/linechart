@@ -5,8 +5,7 @@
   "scripts": {
     "link": "npm link ../vizabi-shared-components",
     "start": "rollup -c",
-    "build": "cross-env NODE_ENV=production rollup -c",
-    "deploy": "tool-deploy"
+    "build": "cross-env NODE_ENV=production rollup -c"
   },
   "main": "build/linechart.js",
   "files": [
