@@ -1,6 +1,5 @@
 language: node_js
 dist: trusty
-sudo: true
 node_js:
 - 12.13.0
 addons:
@@ -19,6 +18,7 @@ cache:
   - node_modules
 before_install:
 - ssh-keyscan -H $TOOLSPAGE_HOST 2>&1 | tee -a $HOME/.ssh/known_hosts
+# this is created by travis encrypt command when adding npm api_key
 - openssl aes-256-cbc -K $encrypted_6f3bd6d63370_key -iv $encrypted_6f3bd6d63370_iv
   -in deploy_rsa.enc -out /tmp/deploy_rsa -d
 - eval "$(ssh-agent -s)"
@@ -34,21 +34,20 @@ script:
 - tool-bump
 - npm run build
 deploy:
-  matrix:
-  - provider: script
-    skip_cleanup: true
-    script: tool-deploy-s3
-    on:
-      branch: switch_to_rollup
-  - provider: npm
-    skip_cleanup: true
-    email: konzeptmeister@gmail.com
-    on:
-      branch: switch_to_rollup
-  - provider: script
-    skip_cleanup: true
-    script: ssh $TOOLSPAGE_USER@$TOOLSPAGE_HOST 'sh /home/root/redeploy.sh "$TRAVIS_REPO_SLUG"'
-    on:
-      branch: switch_to_rollup
+- provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_KEY
+  bucket: $AWS_BUCKET
+  upload-dir: $AWS_SUBFOLDER
+  on:
+    branch: switch_to_rollup
+- provider: npm
+  email: konzeptmeister@gmail.com
   api_key:
     secure: a5ijG8Q6ENhCnXBjkULl9KBZxyrn+KAp0K6CzTvwekKvSPbjFOoH45VeIy5y29yQAdKSvqouh7SBjHFI29M6LpXeqWiBcWHXDcAUrCHA/IbZL/al4F1OO7as2Ay02KKyKBzaHGAUA9BOecPo8P4k8zL8W6BYhm/HmwmoO3R/iZzUoAyaSHuZ5ya7wCvEo8caZMzy5fX9jbz9brC69XvnDoZvbS5NkFsrUVllUU0ASINkCamXGy2q0ghsPYalGm4I0TOTpAlPHOevQRl+/1vU148/RZWFLOyyBS9z0T4THgp+A8f4VvtkVjGlYRgUusVnBnm6p5jKSEgaXjzhzPB5sjksCy2UlLgfEHZXJB+Rulp3Qel4vwBm9rEWsAf6ZUgDHd/pkOp0vTAn9WNSmChW1plO2Wr8YIEXoolFfHTBbh1qVV9pwwmxJmjAhUeKuV8lk/Vf+3vNuyUWxtqVdpjBolY3bWiVSpdlVLz1Nb383K61jGN1B9t4cvKusAe6Dsu8GKr6DMh9iX+tFMAdexkEKVwktuPByN22NgtQZ8SDBKFj02srq/cVLf8UTJhYSwWKXBjEe53Chsv4By8jBF2z1Ny8C9HyibNliAqk8WnUDRSWlxVJhjWGZx06OGmHUHGuGL6x4Z4+jB5BIeIMPhUnG2SJaY4kj5dNh3l7X3hLaqY=
+  on:
+    branch: switch_to_rollup
+- provider: script
+  script: ssh $TOOLSPAGE_USER@$TOOLSPAGE_HOST 'sh /home/root/redeploy.sh "$TRAVIS_REPO_SLUG"'
+  on:
+    branch: switch_to_rollup
