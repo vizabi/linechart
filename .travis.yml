@@ -39,6 +39,7 @@ deploy:
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
   upload-dir: $AWS_SUBFOLDER
+  region: eu-west-1
   on:
     branch: switch_to_rollup
 - provider: npm
