@@ -41,6 +41,7 @@ deploy:
   upload-dir: $AWS_SUBFOLDER
   region: eu-west-1
   skip_cleanup: true
+  local_dir: build
   on:
     branch: switch_to_rollup
 - provider: npm
