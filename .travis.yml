@@ -37,17 +37,17 @@ deploy:
   skip_cleanup: true
   script: tool-deploy-s3
   on:
-    branch: switch-to-rollup
+    branch: switch_to_rollup
 - provider: npm
   skip_cleanup: true
   email: konzeptmeister@gmail.com
   api_key:
     secure: gAq2fBgxT9xpcCgPyWpebBZiYuAUUVB1rIaQSj5b4FPwKN0+Kh4pd9zgSUxWVUTDzEWG1jNgenS1hXhUiGetVQOJoG/roeu6gXy/AhDdhd9hmQhrfraYnjovrdeFlm/ypOlAi+rfGVuphyCYef9U0mfSnTUGqsdjPlin1GK3mkwXL7mNIM3f+hcA8UbMLMSgYZwGpfxojV/AHZOk4j2C44mA30NivGbwZvpXV0DyBPCjFX4QeWn+VUn4mXMtIvBcqizC65a4EZjU8S2md5J/bInN1YRB5yeZxbfPl9ekB5ig3eBDQPYw2C/wQ8oMNJ3EtH+KJLwNpZye0sUxBHC3Raz9AusT+0I00xUccz/A5RW5bAC3PuZUtthN23zpfnGdFcr1+KbomJMy2m2SRq34VjktePxE4GQADh2bc6wqiQerX919VMQk/Gbb0KTJpVtvWMAYtWAvpaOC+T+g+1YJS84vVdxu4Of+Ir2iNuMMnH310TC1U+4ef0n/FFM6enChtISVU+JQPIyiQtk+qJ9LzP9D/WTaLzL2cZxgAi2PIb6t9NG5YVVDF9eBbTtgQF5zRWo8kRLpYuOYo+xOvHvRWkWJ0MKyW5+uczBfKhxVd3H5sgUPQZVonYa6csgih9TipZOztgIL877W27PCORQip/9x+ueL4WWpx3i8Kzh8R7c=
   on:
-    branch: switch-to-rollup
+    branch: switch_to_rollup
     condition: "-e /tmp/deployment.flag"
 - provider: script
   skip_cleanup: true
   script: ssh $TOOLSPAGE_USER@$TOOLSPAGE_HOST 'sh /home/root/redeploy.sh "$TRAVIS_REPO_SLUG"'
   on:
-    branch: switch-to-rollup
+    branch: switch_to_rollup
