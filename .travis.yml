@@ -48,7 +48,7 @@ deploy:
   skip_cleanup: true
   local_dir: build
   on:
-    branch: switch_to_rollup
+    branch: master
 #
 # put build files on s3 as latest version
 #
@@ -62,7 +62,7 @@ deploy:
   skip_cleanup: true
   local_dir: build
   on:
-    branch: switch_to_rollup
+    branch: master
 #
 # npm deploy
 #
@@ -80,5 +80,5 @@ deploy:
   script: ssh $TOOLSPAGE_USER@$TOOLSPAGE_HOST 'sh /home/root/redeploy.sh "$TRAVIS_REPO_SLUG"'
   skip_cleanup: true
   on:
-    branch: switch_to_rollup
+    branch: master
 

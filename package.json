@@ -1,6 +1,6 @@
 {
   "name": "vizabi-linechart",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "description": "Line chart tool for Vizabi 📊",
   "scripts": {
     "link": "npm link ../vizabi-shared-components",
@@ -26,6 +26,6 @@
   "devDependencies": {
     "cross-env": "^5.0.0",
     "vizabi-shared-components": "github:vizabi/vizabi-shared-components",
-    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler#switch_to_rollup"
+    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler"
   }
 }
