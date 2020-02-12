@@ -33,12 +33,13 @@ before_script:
 script:
 - tool-bump
 - npm run build
+- PACKAGE_VERSION=$(node -p "require('./package.json').version")
 deploy:
 - provider: s3
   access_key_id: $AWS_ACCESS_KEY_ID
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
-  upload-dir: $(node -p -e "require('./package.json').version")
+  upload-dir: $PACKAGE_VERSION
   region: eu-west-1
   skip_cleanup: true
   local_dir: build
