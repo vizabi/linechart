@@ -18,7 +18,7 @@ cache:
   - node_modules
 before_install:
 - ssh-keyscan -H $TOOLSPAGE_HOST 2>&1 | tee -a $HOME/.ssh/known_hosts
-# this is created by travis encrypt command when adding npm api_key 
+# this is created by travis encrypt command when adding npm api_key
 - openssl aes-256-cbc -K $encrypted_6f3bd6d63370_key -iv $encrypted_6f3bd6d63370_iv
   -in deploy_rsa.enc -out /tmp/deploy_rsa -d
 - eval "$(ssh-agent -s)"
@@ -38,7 +38,7 @@ deploy:
   access_key_id: $AWS_ACCESS_KEY_ID
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
-  upload-dir: "node -p -e 'require("./package.json").version'"
+  upload-dir: $(node -p -e 'require("./package.json").version')
   region: eu-west-1
   skip_cleanup: true
   local_dir: build
