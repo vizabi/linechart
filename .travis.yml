@@ -40,7 +40,8 @@ deploy:
 #
 - provider: s3
   access_key_id: $AWS_ACCESS_KEY_ID
-  secret_access_key: $AWS_SECRET_KEY
+  secret_access_key:
+    secure: Cp30OFVtxwZLW7Vgr9SAGCFfRjXUkJ3XPnPD/2ted9XNHFHCYOHe5KJH+D8IffN0h/xdC44wp8ClRqdQHpRcsEhATuYi78F2Sp3i89mzCpV8LeaLMUhc+9A4WxM7aR6byLfqmCxEdlBRNUp0xltu221otARmsyrkaZ6BmzpUh63wLlQv1wtVgzaS1ZKE1a1KfMxnkzW/QJaSUqiw3zCkxeoekpvp7dvk0LZKTirP7yeJZcSLNlLxTxxoz/qwROClzhCt5sVWl1tssZOAO/Edjv1cZ//Ih3NHFZO3jqraRY4ctoji8RG+3LTTTzJgcwqUlMvF3GZQtVhbxE673LZdmVp5CGwLFu17vtwwBO2j1WBRmlDgtuFuZRv4rAdcD2ERTf9CoOkoXM7r3rUW0+lY7xWpdUvSx5xjc3qLT5lqu5aW9SG7C0MMlE7DugRUnasl7rYtLWk/fx1JnifJ8rQP+svqCdt2PBZKCXQ05KBzaMHQRzH35juIPBKYRSMsGjrSYTxXo8z+LM6+gtyrcKZIiOZPiwFFLrRvHSxA88JSFXzVCoARcVo0tNlU3OcU3VipN/1AKxnxL+SjXC9ApP1jwAvKPcc/1ZEEBbmFlIMgcdWLv7H9ZMovgpObiXKBIONTthyVjowr8fHS3eApyunaZlh5n+wqBUtM9hBbdTED7U0=
   bucket: $AWS_BUCKET
   upload-dir: $AWS_SUBFOLDER/$PACKAGE_VERSION
   region: eu-west-1
@@ -53,7 +54,8 @@ deploy:
 #
 - provider: s3
   access_key_id: $AWS_ACCESS_KEY_ID
-  secret_access_key: $AWS_SECRET_KEY
+  secret_access_key:
+    secure: Cp30OFVtxwZLW7Vgr9SAGCFfRjXUkJ3XPnPD/2ted9XNHFHCYOHe5KJH+D8IffN0h/xdC44wp8ClRqdQHpRcsEhATuYi78F2Sp3i89mzCpV8LeaLMUhc+9A4WxM7aR6byLfqmCxEdlBRNUp0xltu221otARmsyrkaZ6BmzpUh63wLlQv1wtVgzaS1ZKE1a1KfMxnkzW/QJaSUqiw3zCkxeoekpvp7dvk0LZKTirP7yeJZcSLNlLxTxxoz/qwROClzhCt5sVWl1tssZOAO/Edjv1cZ//Ih3NHFZO3jqraRY4ctoji8RG+3LTTTzJgcwqUlMvF3GZQtVhbxE673LZdmVp5CGwLFu17vtwwBO2j1WBRmlDgtuFuZRv4rAdcD2ERTf9CoOkoXM7r3rUW0+lY7xWpdUvSx5xjc3qLT5lqu5aW9SG7C0MMlE7DugRUnasl7rYtLWk/fx1JnifJ8rQP+svqCdt2PBZKCXQ05KBzaMHQRzH35juIPBKYRSMsGjrSYTxXo8z+LM6+gtyrcKZIiOZPiwFFLrRvHSxA88JSFXzVCoARcVo0tNlU3OcU3VipN/1AKxnxL+SjXC9ApP1jwAvKPcc/1ZEEBbmFlIMgcdWLv7H9ZMovgpObiXKBIONTthyVjowr8fHS3eApyunaZlh5n+wqBUtM9hBbdTED7U0=
   bucket: $AWS_BUCKET
   upload-dir: $AWS_SUBFOLDER
   region: eu-west-1
