@@ -35,7 +35,10 @@ script:
 - npm run build
 - PACKAGE_VERSION=$(node -p "require('./package.json').version")
 deploy:
-- provider: s3 #put build files on s3 into a versioned folder
+#
+# put build files on s3 into a versioned folder
+#
+- provider: s3
   access_key_id: $AWS_ACCESS_KEY_ID
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
@@ -45,7 +48,10 @@ deploy:
   local_dir: build
   on:
     branch: switch_to_rollup
-- provider: s3 #put build files on s3 as latest version
+#
+# put build files on s3 as latest version
+#
+- provider: s3
   access_key_id: $AWS_ACCESS_KEY_ID
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
@@ -55,6 +61,9 @@ deploy:
   local_dir: build
   on:
     branch: switch_to_rollup
+#
+# npm deploy
+#
 - provider: npm 
   email: konzeptmeister@gmail.com
   api_key:
@@ -62,6 +71,9 @@ deploy:
   skip_cleanup: true
   on:
     branch: switch_to_rollup
+#
+# rebuild tools page dev
+#
 - provider: script
   script: ssh $TOOLSPAGE_USER@$TOOLSPAGE_HOST 'sh /home/root/redeploy.sh "$TRAVIS_REPO_SLUG"'
   skip_cleanup: true
