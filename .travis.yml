@@ -39,7 +39,7 @@ deploy:
   access_key_id: $AWS_ACCESS_KEY_ID
   secret_access_key: $AWS_SECRET_KEY
   bucket: $AWS_BUCKET
-  upload-dir: $PACKAGE_VERSION
+  upload-dir: $AWS_SUBFOLDER/$PACKAGE_VERSION
   region: eu-west-1
   skip_cleanup: true
   local_dir: build
