@@ -45,6 +45,16 @@ deploy:
   local_dir: build
   on:
     branch: switch_to_rollup
+- provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_KEY
+  bucket: $AWS_BUCKET
+  upload-dir: $AWS_SUBFOLDER/latest
+  region: eu-west-1
+  skip_cleanup: true
+  local_dir: build
+  on:
+    branch: switch_to_rollup
 - provider: npm
   email: konzeptmeister@gmail.com
   api_key:
