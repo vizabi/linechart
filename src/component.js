@@ -2,6 +2,7 @@ import {
   BaseComponent,
   Icons,
   LegacyUtils as utils,
+  Utils,
   collisionResolver,
   axisSmart
 } from "VizabiSharedComponents";
@@ -255,23 +256,19 @@ export default class VizabiLineChart extends BaseComponent {
       label: this.model.encoding.get("label")
     };
     this.localise = this.services.locale.auto();
-  
-    // new scales and axes
-    this.xScale = this.MDL.x.scale.d3Scale.copy();
-    this.yScale = this.MDL.y.scale.d3Scale.copy();
-    this.cScale = this.MDL.color.scale.d3Scale.copy();
-  
+
     this.yAxis.tickFormat(this.localise);
     this.xAxis.tickFormat(this.localise);
     
-    this.collisionResolver.scale(this.yScale);
-
     this.TIMEDIM = this.MDL.frame.data.concept;
     this.KEYS = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
 
     this.addReaction(this._drawForecastOverlay);
 
     if (this._updateLayoutProfile()) return; //return if exists with error
+
+    this.addReaction(this._constructScales);
+    this.addReaction(this._constructColorScale);
 
     this.addReaction(this._setupIcons);
     this.addReaction(this._setupEventHandlers);
@@ -287,6 +284,23 @@ export default class VizabiLineChart extends BaseComponent {
     this.addReaction(this._highlightLines);
     this.addReaction(this._updateDoubtOpacity);
   
+  }
+
+  _constructScales() {
+    const zoomedX = this.MDL.x.scale.zoomed;
+    const zoomedY = this.MDL.y.scale.zoomed;
+    this.xScale = this.MDL.x.scale.d3Scale.copy();
+    this.xScale.domain(zoomedX);
+    this.MDL.frame.scale.config.domain = zoomedX;
+
+    this.yScale = this.MDL.y.scale.d3Scale.copy();
+    this.yScale.domain(zoomedY);
+
+    this.collisionResolver.scale(this.yScale);
+  }
+
+  _constructColorScale() {
+    this.cScale = this.MDL.color.scale.d3Scale.copy();
   }
 
   _drawForecastOverlay() {
@@ -373,9 +387,9 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   _updateUIStrings() {
-    const conceptPropsY = this.MDL.y.data.conceptProps;
-    const conceptPropsX = this.MDL.x.data.conceptProps;
-    const conceptPropsColor = this.MDL.color.data.conceptProps;
+    const conceptPropsY = Utils.getConceptProps(this.MDL.y, this.localise);
+    const conceptPropsX = Utils.getConceptProps(this.MDL.x, this.localise);
+    const conceptPropsColor = Utils.getConceptProps(this.MDL.color, this.localise);
 
     this.strings = {
       title: {
@@ -411,7 +425,7 @@ export default class VizabiLineChart extends BaseComponent {
     this.time = frame.value;
     this.duration = frame.playing && (this.time - time_1 > 0) ? frame.speed || 0 : 0;
 
-    this.stepIndex = frame.stepArray.findIndex(f => (f - this.time) >= 0);
+    this.stepIndex = frame.stepScale.invert(this.time);
   }
 
   _updateColors() {
@@ -422,9 +436,9 @@ export default class VizabiLineChart extends BaseComponent {
       entityLabels,
       entityLines
     } = this.DOM;
-    
-    this.cScale = color.scale.d3Scale;
-    
+
+    color.scale.d3Scale;
+
     entityLabels.each(function(d, index) {
       const entity = d3.select(this);
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
@@ -448,17 +462,22 @@ export default class VizabiLineChart extends BaseComponent {
   _getColorsByValue(colorValue) {
     return { 
       color: colorValue != null ? this.cScale(colorValue) : this.COLOR_WHITEISH,
-      colorShadow: colorValue != null ? d3.color(this.cScale(colorValue)).darker(2).hex()
-      // this.MDL.color.getColorShade({
-      //     colorID: colorValue,
-      //     shadeID: "shade"
-      //   })
+      colorShadow: colorValue != null ? this.MDL.color.scale.palette.getColorShade({
+          colorID: colorValue,
+          shadeID: "shade"
+        })
          : this.COLOR_WHITEISH_SHADE
     }
   }
 
   _processFramesData() {
-    return this.model.getTransformedDataMap("filterRequired").flatten().groupBy(this.KEYS);
+    const KEY = this.KEY;
+    const data = new Map();
+    this.model.getTransformedDataMap("filterRequired").each(frame => frame.forEach((valuesObj, key) => {
+      if (!data.has(key)) data.set(key, { [KEY]: key, values:[] });
+      data.get(key).values.push(valuesObj);
+    }));
+    return data;
   }
 
   /*
@@ -466,6 +485,8 @@ export default class VizabiLineChart extends BaseComponent {
    * Ideally should only update when show parameters change or data changes
    */
   _updateShow() {
+    this.MDL.x.scale.zoomed;
+
     const _this = this;
     const KEYS = this.KEYS;
     const KEY = this.KEY;
@@ -484,13 +505,11 @@ export default class VizabiLineChart extends BaseComponent {
     this.cached = {};
 
     const TIMEDIM = this.TIMEDIM;
-    this.data = [...this._processFramesData().entries()]
-      .map(d => ({[KEY]: d[0], values: [...d[1].values()]}))
-      .map(d => {
-        d.shiftIndex = frame.stepArray.findIndex(step => step - d.values[0][TIMEDIM] >= 0);
-        return d;
-      });
-    entityLines = entityLines.data(this.data);
+    this.data = [...this._processFramesData().values()].map(d => {
+      d.shiftIndex = frame.stepScale.invert(d.values[0][TIMEDIM]);
+      return d;
+    });
+    entityLines = entityLines.data(this.data, d => d[KEY]);
     entityLines.exit().remove();
 
     this.lineWidth = this.lineWidthScale(this.data.length);
@@ -499,30 +518,31 @@ export default class VizabiLineChart extends BaseComponent {
     } else {
       this.shadowWidth = null;
     }
+
     labelsContainer.classed("small", !this.shadowWidth);
     this.DOM.entityLines = entityLines = entityLines
     .enter().append("g")
       .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
       .each(function(d, index) {
         const entity = d3.select(this);
-        if (_this.shadowWidth) {
-          entity.append("path")
-            .attr("class", "vzb-lc-line-shadow");
-        } else {
-          
-        }
-
         entity.append("path")
           .attr("class", "vzb-lc-line");
       })
       .merge(entityLines);
-    
-    entityLabels = entityLabels.data(this.data);
+
+    this.DOM.entityLines.selectAll(".vzb-lc-line-shadow")
+      .remove();
+    if (_this.shadowWidth) {
+      this.DOM.entityLines.insert("path", ":first-child")
+        .attr("class", "vzb-lc-line-shadow");
+    }
+      
+    entityLabels = entityLabels.data(this.data, d => d[KEY]);
     entityLabels.exit().remove();
     this.DOM.entityLabels = entityLabels = entityLabels.enter().append("g")
       .attr("class", "vzb-lc-entity")
       .on("mouseover", d => {
-        _this.MDL.highlighted.data.filter.set(d);
+        _this.MDL.highlighted.data.filter.set(d, JSON.stringify(d.values[d.values.length - 1]));
       })
       .on("mouseout", d => {
         _this.MDL.highlighted.data.filter.delete(d);
@@ -551,17 +571,21 @@ export default class VizabiLineChart extends BaseComponent {
       })
       .merge(entityLabels);
 
+    this.addValueToLabel = this.data.length < this.state.chart.labels.min_number_of_entities_when_values_hide * KEYS.length;
+
     entityLabels.each(function(d, index) {
       const entity = d3.select(this);
-      
+
       const label = d.label = _this._getCompoundLabelText(d.values[0].label, KEYS);
       d.name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
-      const value = _this.yAxis.tickFormat()((d.values[_this.stepIndex] || {}).y) 
 
-      entity.selectAll(".vzb-lc-labelname")
-        .text(d.name)
-      entity.select("title").text(label + " " + value);
+      if (!_this.addValueToLabel) { 
+        entity.selectAll(".vzb-lc-labelname")
+          .text(d.name);
+      }
 
+      const titleText = _this.addValueToLabel ? label : label + " " + _this.yAxis.tickFormat()((d.values[_this.stepIndex] || {}).y);
+      entity.select("title").text(titleText);
     });
 
     //line template
@@ -581,6 +605,8 @@ export default class VizabiLineChart extends BaseComponent {
     this.services.layout.size;
     this.MDL.x.scale.type;
     this.MDL.y.scale.type;
+    this.MDL.x.scale.zoomed;
+    this.MDL.y.scale.zoomed;
 
     const _this = this;
     const KEYS = this.KEYS;
@@ -637,10 +663,10 @@ export default class VizabiLineChart extends BaseComponent {
         //.style("filter", "none")
           .style("stroke-width", _this.lineWidth + "px")
           .attr("d", line);
-        const totalLength = path2.node().getTotalLength();
 
         // this section ensures the smooth transition while playing and not needed otherwise
         if (frame.playing) {
+          const totalLength = path2.node().getTotalLength();
 
           path1
             .interrupt()
@@ -696,13 +722,11 @@ export default class VizabiLineChart extends BaseComponent {
             .ease(d3.easeLinear)
             .attr("cy", d.valueY + 1);
 
-          if (_this.data.length < _this.state.chart.labels.min_number_of_entities_when_values_hide * KEYS.length) {
-            const label = _this.getCompoundLabelText(_this.cached[d[KEY]].label, KEYS);
+          if (_this.addValueToLabel) {
             const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
-            const name = label.length < 13 ? label : label.substring(0, 12) + "…";//"…";
 
             entity.selectAll(".vzb-lc-labelname")
-              .text(name + " " + value);
+              .text(d.name + " " + value);
           }
 
           entity.select(".vzb-lc-label")
@@ -770,6 +794,8 @@ export default class VizabiLineChart extends BaseComponent {
    */
   _updateSize() {
     this.services.layout.size;
+    this.MDL.x.scale.zoomed;
+    this.MDL.y.scale.zoomed;
 
     const {
       x,
@@ -1082,8 +1108,8 @@ export default class VizabiLineChart extends BaseComponent {
     const OPACITY_HIGHLT = 1.0;
     const OPACITY_HIGHLT_DIM = 0.3;
     const OPACITY_SELECT = 1.0;
-    const OPACITY_REGULAR = this.state.opacityRegular;
-    const OPACITY_SELECT_DIM = this.state.opacitySelectDim;
+    const OPACITY_REGULAR = this.ui.opacityRegular;
+    const OPACITY_SELECT_DIM = this.ui.opacitySelectDim;
     const {
       entityLines,
       entityLabels
@@ -1187,4 +1213,13 @@ export default class VizabiLineChart extends BaseComponent {
     return resKey;
   }
 
+}
+
+VizabiLineChart.DEFAULT_UI = {
+  opacityHighlightDim: 0.1,
+  opacitySelectDim: 0.3,
+  opacityRegular: 1,
+  defaultTest: {
+    test3: "test3"
+  }
 }

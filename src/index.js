@@ -2,11 +2,13 @@ import "./styles.scss";
 import { 
   BaseComponent,
   TimeSlider,
+  DataWarning,
   DataNotes,
   LocaleService,
   LayoutService,
   TreeMenu,
   SteppedSlider,
+  Dialogs,
   ButtonList 
 } from "VizabiSharedComponents";
 import VizabiLineChart from "./component.js";
@@ -16,35 +18,48 @@ const VERSION_INFO = { version: __VERSION, build: __BUILD };
 export default class LineChart extends BaseComponent {
 
   constructor(config){
+    const marker = config.model.stores.markers.get("line");
+
+    config.name = "linechart";
+
     config.subcomponents = [{
       type: VizabiLineChart,
       placeholder: ".vzb-linechart",
-      //model: this.model
+      model: marker,
       name: "chart"
     },{
       type: TimeSlider,
       placeholder: ".vzb-timeslider",
+      model: marker,
       name: "time-slider"
-      //model: this.model
     },{
       type: SteppedSlider,
       placeholder: ".vzb-speedslider",
+      model: marker,
       name: "speed-slider"
-      //model: this.model
     },{
       type: TreeMenu,
       placeholder: ".vzb-treemenu",
+      model: marker,
       name: "tree-menu"
-      //model: this.model
+    },{
+      type: DataWarning,
+      placeholder: ".vzb-datawarning",
+      model: marker
     },{
       type: DataNotes,
       placeholder: ".vzb-datanotes",
-      //model: this.model
+      model: marker
+    },{
+      type: Dialogs,
+      placeholder: ".vzb-dialogs",
+      model: marker,
+      name: "dialogs"
     },{
       type: ButtonList,
       placeholder: ".vzb-buttonlist",
+      model: marker,
       name: "buttons"
-      //model: this.model
     }];
 
     config.template = `
@@ -54,9 +69,11 @@ export default class LineChart extends BaseComponent {
         <div class="vzb-speedslider"></div>
       </div>
       <div class="vzb-sidebar">
+        <div class="vzb-dialogs"></div>
         <div class="vzb-buttonlist"></div>
       </div>
       <div class="vzb-treemenu"></div>
+      <div class="vzb-datawarning"></div>
       <div class="vzb-datanotes"></div>
     `;
 
@@ -66,10 +83,18 @@ export default class LineChart extends BaseComponent {
     };
 
     //register locale service in the marker model
-    config.model.config.data.locale = config.services.locale;
+    config.model.config.markers.line.data.locale = config.services.locale;
 
     super(config);
   }
+}
+
+LineChart.DEFAULT_UI = {
+  chart: {
+    opacityHighlightDim: 0.1,
+    opacitySelectDim: 0.3,
+    opacityRegular: 1
+  },
 }
   
 LineChart.default_model = {
