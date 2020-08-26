@@ -12,6 +12,7 @@ import {
   ButtonList 
 } from "VizabiSharedComponents";
 import VizabiLineChart from "./component.js";
+import { observable } from "mobx";
 
 const VERSION_INFO = { version: __VERSION, build: __BUILD };
 
@@ -83,7 +84,10 @@ export default class LineChart extends BaseComponent {
     };
 
     //register locale service in the marker model
-    config.model.config.markers.line.data.locale = config.services.locale;
+    config.model.config.markers.line.data.locale = observable({
+      get id() { return config.services.locale.id; }
+    });
+    //config.model.config.markers.line.data.locale = config.services.locale;
 
     super(config);
   }
