@@ -6,6 +6,7 @@ import {
   collisionResolver,
   axisSmart
 } from "VizabiSharedComponents";
+import { runInAction } from "mobx";
 
 const {ICON_WARN, ICON_QUESTION} = Icons;
 const PROFILE_CONSTANTS = {
@@ -1015,10 +1016,10 @@ export default class VizabiLineChart extends BaseComponent {
     const resolvedValue = data.getByObjOrStr(undefined, nearestKey)["y"];
     const hoveringNow = {[KEY]: nearestKey};
     if (!highlightedFilter.has(hoveringNow)) {
-      mobx.action(() => {
+      runInAction(() => {
         highlightedFilter.config.markers = {};
         highlightedFilter.set(hoveringNow);
-      })();
+      });
     }
     _this.hoveringNow = hoveringNow;
 
