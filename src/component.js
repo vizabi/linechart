@@ -209,7 +209,7 @@ export default class VizabiLineChart extends BaseComponent {
       .selector(".vzb-lc-label")
       .value("valueY")
       .filter(function(d, time){
-        return (d.valueX - time === 0 && !d.hidden)
+        return (d.valueX - time === 0 && !d.hidden);
       })
       .KEY(this.KEY);
 
@@ -319,7 +319,7 @@ export default class VizabiLineChart extends BaseComponent {
     } = this.DOM;
 
     utils.setIcon(yInfoEl, ICON_QUESTION).select("svg")
-      .attr("width", "0px").attr("height", "0px")
+      .attr("width", "0px").attr("height", "0px");
 
     utils.setIcon(dataWarningEl, ICON_WARN).select("svg")
       .attr("width", "0px").attr("height", "0px");
@@ -406,7 +406,7 @@ export default class VizabiLineChart extends BaseComponent {
     };
 
     this.DOM.yInfoEl
-      .style('opacity', Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
+      .style("opacity", Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
 
     // if (this.strings.unit.Y === "unit/" + this.model.marker.axis_y.which) this.strings.unit.Y = "";
     // if (this.strings.unit.X === "unit/" + this.model.marker.axis_x.which) this.strings.unit.X = "";
@@ -419,8 +419,6 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   _updateTime() {
-    const KEY = this.KEY;
-
     const { frame } = this.MDL;
     const time_1 = (this.time === null) ? frame.value : this.time;
     this.time = frame.value;
@@ -431,7 +429,6 @@ export default class VizabiLineChart extends BaseComponent {
 
   _updateColors() {
     const _this = this;
-    const KEY = this.KEY;
     const { color } = this.MDL; 
     const {
       entityLabels,
@@ -440,18 +437,18 @@ export default class VizabiLineChart extends BaseComponent {
 
     color.scale.d3Scale;
 
-    entityLabels.each(function(d, index) {
+    entityLabels.each(function(d) {
       const entity = d3.select(this);
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
 
       entity.select("circle").style("fill", color);
       entity.select(".vzb-lc-labelfill")
-        .style("fill", colorShadow)
+        .style("fill", colorShadow);
       entity.select(".vzb-lc-label-value")
         .style("fill", colorShadow);
     });
 
-    entityLines.each(function(d, index) {
+    entityLines.each(function(d) {
       const entity = d3.select(this);
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
       
@@ -468,7 +465,7 @@ export default class VizabiLineChart extends BaseComponent {
           shadeID: "shade"
         })
          : this.COLOR_WHITEISH_SHADE
-    }
+    };
   }
 
   _processFramesData() {
@@ -524,7 +521,7 @@ export default class VizabiLineChart extends BaseComponent {
     this.DOM.entityLines = entityLines = entityLines
     .enter().append("g")
       .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
-      .each(function(d, index) {
+      .each(function() {
         const entity = d3.select(this);
         entity.append("path")
           .attr("class", "vzb-lc-line");
@@ -548,7 +545,7 @@ export default class VizabiLineChart extends BaseComponent {
       .on("mouseout", d => {
         _this.MDL.highlighted.data.filter.delete(d);
       })
-      .each(function(d, index) {
+      .each(function() {
         const entity = d3.select(this);
 
         entity.append("circle")
@@ -624,7 +621,7 @@ export default class VizabiLineChart extends BaseComponent {
     } = this.MDL;
 
     entityLines
-      .each(function(d, index) {
+      .each(function(d) {
         const entity = d3.select(this);
           
         const xy = d.values.slice(0, (_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex)
@@ -705,7 +702,7 @@ export default class VizabiLineChart extends BaseComponent {
       });
 
     entityLabels
-      .each(function(d, index) {
+      .each(function(d) {
         const entity = d3.select(this);
         if (_this.cached[d[KEY]]) {
           d.valueX = _this.xScale(_this.cached[d[KEY]]["valueX"]);
@@ -824,19 +821,15 @@ export default class VizabiLineChart extends BaseComponent {
 
     const {
       margin,
-      headerMargin,
-      tick_spacing,
       text_padding,
       lollipopRadius,
       limitMaxTickNumberX,
       yAxisTitleBottomMargin,
-      infoElHeight,
-      infoElMargin,
+      infoElHeight
     } = this.profileConstants;
 
     const isRTL = this.services.locale.isRTL();
 
-    const padding = 2;
 
     //adjust right this.margin according to biggest label
 
@@ -844,7 +837,7 @@ export default class VizabiLineChart extends BaseComponent {
 
     entityLabels.selectAll(".vzb-lc-labelname")
       .attr("dx", text_padding)
-      .each(function(d, index) {
+      .each(function() {
         const width = this.getComputedTextLength();
         if (width > longestLabelWidth) longestLabelWidth = width;
       });
@@ -1223,4 +1216,4 @@ VizabiLineChart.DEFAULT_UI = {
   defaultTest: {
     test3: "test3"
   }
-}
+};
