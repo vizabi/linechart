@@ -190,7 +190,7 @@ export default class VizabiLineChart extends BaseComponent {
       dataWarningEl: this.element.select(".vzb-data-warning"),
 
       tooltip: this.element.select(".vzb-tooltip"),
-        //         filterDropshadowEl: this.element.select('#vzb-lc-filter-dropshadow'),
+      //filterDropshadowEl: this.element.select('#vzb-lc-filter-dropshadow'),
       projectionX: this.element.select(".vzb-lc-projection-x"),
       projectionY: this.element.select(".vzb-lc-projection-y"),
       forecastOverlay: this.element.select(".vzb-lc-forecastoverlay")
@@ -263,31 +263,30 @@ export default class VizabiLineChart extends BaseComponent {
     
     this.TIMEDIM = this.MDL.frame.data.concept;
     this.KEYS = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
+        
+    if (this.updateLayoutProfile()) return; //return if exists with error
+    
+    this.addReaction(this.drawForecastOverlay);
+    this.addReaction(this.constructScales);
+    this.addReaction(this.constructColorScale);
 
-    this.addReaction(this._drawForecastOverlay);
-
-    if (this._updateLayoutProfile()) return; //return if exists with error
-
-    this.addReaction(this._constructScales);
-    this.addReaction(this._constructColorScale);
-
-    this.addReaction(this._setupIcons);
-    this.addReaction(this._setupEventHandlers);
-    this.addReaction(this._setupDataWarningDoubtScale);
+    this.addReaction(this.setupIcons);
+    this.addReaction(this.setupEventHandlers);
+    this.addReaction(this.setupDataWarningDoubtScale);
   
-    this.addReaction(this._updateTime);
-    this.addReaction(this._updateUIStrings);
-    this.addReaction(this._updateShow);
-    this.addReaction(this._updateColors);
-    this.addReaction(this._updateSize);
+    this.addReaction(this.updateTime);
+    this.addReaction(this.updateUIStrings);
+    this.addReaction(this.updateShow);
+    this.addReaction(this.updateColors);
+    this.addReaction(this.updateSize);
 
-    this.addReaction(this._redrawDataPoints);
-    this.addReaction(this._highlightLines);
-    this.addReaction(this._updateDoubtOpacity);
+    this.addReaction(this.redrawDataPoints);
+    this.addReaction(this.highlightLines);
+    this.addReaction(this.updateDoubtOpacity);
   
   }
 
-  _constructScales() {
+  constructScales() {
     const zoomedX = this.MDL.x.scale.zoomed;
     const zoomedY = this.MDL.y.scale.zoomed;
     this.xScale = this.MDL.x.scale.d3Scale.copy();
@@ -300,11 +299,11 @@ export default class VizabiLineChart extends BaseComponent {
     this.collisionResolver.scale(this.yScale);
   }
 
-  _constructColorScale() {
+  constructColorScale() {
     this.cScale = this.MDL.color.scale.d3Scale.copy();
   }
 
-  _drawForecastOverlay() {
+  drawForecastOverlay() {
     this.DOM.forecastOverlay.classed("vzb-hidden", 
       !this.MDL.frame.endBeforeForecast || 
       !this.state.showForecastOverlay || 
@@ -312,7 +311,7 @@ export default class VizabiLineChart extends BaseComponent {
     );
   }
 
-  _setupIcons() {
+  setupIcons() {
     const {
       yInfoEl,
       dataWarningEl
@@ -327,7 +326,7 @@ export default class VizabiLineChart extends BaseComponent {
       .attr("text-anchor", "end");
   }
 
-  _setupEventHandlers() {
+  setupEventHandlers() {
     const {
       yTitleEl,
       yInfoEl,
@@ -369,15 +368,15 @@ export default class VizabiLineChart extends BaseComponent {
         this.root.findChild({type: "DataWarning"}).toggle();
       })
       .on("mouseover", () => {
-        this._updateDoubtOpacity(1);
+        this.updateDoubtOpacity(1);
       })
       .on("mouseout", () => {
-        this._updateDoubtOpacity();
+        this.updateDoubtOpacity();
       });
 
   }
 
-  _setupDataWarningDoubtScale() {
+  setupDataWarningDoubtScale() {
     this.wScale = d3.scaleLinear()
       .domain(this.state.datawarning.doubtDomain)
       .range(this.state.datawarning.doubtRange);
@@ -387,7 +386,7 @@ export default class VizabiLineChart extends BaseComponent {
     return keys.map(key => labelObj[key]).join(",");
   }
 
-  _updateUIStrings() {
+  updateUIStrings() {
     const conceptPropsY = Utils.getConceptProps(this.MDL.y, this.localise);
     const conceptPropsX = Utils.getConceptProps(this.MDL.x, this.localise);
     const conceptPropsColor = Utils.getConceptProps(this.MDL.color, this.localise);
@@ -418,7 +417,7 @@ export default class VizabiLineChart extends BaseComponent {
     
   }
 
-  _updateTime() {
+  updateTime() {
     const { frame } = this.MDL;
     const time_1 = (this.time === null) ? frame.value : this.time;
     this.time = frame.value;
@@ -427,7 +426,7 @@ export default class VizabiLineChart extends BaseComponent {
     this.stepIndex = frame.stepScale.invert(this.time);
   }
 
-  _updateColors() {
+  updateColors() {
     const _this = this;
     const { color } = this.MDL; 
     const {
@@ -461,10 +460,10 @@ export default class VizabiLineChart extends BaseComponent {
     return { 
       color: colorValue != null ? this.cScale(colorValue) : this.COLOR_WHITEISH,
       colorShadow: colorValue != null ? this.MDL.color.scale.palette.getColorShade({
-          colorID: colorValue,
-          shadeID: "shade"
-        })
-         : this.COLOR_WHITEISH_SHADE
+        colorID: colorValue,
+        shadeID: "shade"
+      })
+        : this.COLOR_WHITEISH_SHADE
     };
   }
 
@@ -482,7 +481,7 @@ export default class VizabiLineChart extends BaseComponent {
    * UPDATE SHOW:
    * Ideally should only update when show parameters change or data changes
    */
-  _updateShow() {
+  updateShow() {
     this.MDL.x.scale.zoomed;
 
     const _this = this;
@@ -519,7 +518,7 @@ export default class VizabiLineChart extends BaseComponent {
 
     labelsContainer.classed("small", !this.shadowWidth);
     this.DOM.entityLines = entityLines = entityLines
-    .enter().append("g")
+      .enter().append("g")
       .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
       .each(function() {
         const entity = d3.select(this);
@@ -595,11 +594,11 @@ export default class VizabiLineChart extends BaseComponent {
       .y(d => this.yScale(d[1]));
   }
 
-    /*
+  /*
    * REDRAW DATA POINTS:
    * Here plotting happens
    */
-  _redrawDataPoints() {
+  redrawDataPoints() {
     this.services.layout.size;
     this.MDL.x.scale.type;
     this.MDL.y.scale.type;
@@ -743,7 +742,7 @@ export default class VizabiLineChart extends BaseComponent {
       .duration(_this.duration)
       .ease(d3.easeLinear)
       .attr("transform", "translate(" + _this.xScale(_this.time//d3.min([_this.model.marker.axis_x.getZoomedMax(), _this.time])
-        ) + ",0)");
+      ) + ",0)");
 
 
     if (!this.hoveringNow && this.time - frame.start !== 0) {
@@ -776,7 +775,7 @@ export default class VizabiLineChart extends BaseComponent {
 
   }
 
-  _updateLayoutProfile() {
+  updateLayoutProfile() {
     this.services.layout.size;
 
     this.profileConstants = this.services.layout.getProfileConstants(PROFILE_CONSTANTS, PROFILE_CONSTANTS_FOR_PROJECTOR);
@@ -790,7 +789,7 @@ export default class VizabiLineChart extends BaseComponent {
    * Executed whenever the container is resized
    * Ideally, it contains only operations related to size
    */
-  _updateSize() {
+  updateSize() {
     this.services.layout.size;
     this.MDL.x.scale.zoomed;
     this.MDL.y.scale.zoomed;
@@ -976,7 +975,7 @@ export default class VizabiLineChart extends BaseComponent {
 
   }
 
-  _updateDoubtOpacity(opacity) {
+  updateDoubtOpacity(opacity) {
     if (opacity == null) opacity = this.wScale(+this.time.getUTCFullYear().toString());
     if (this.someSelected) opacity = 1;
     this.DOM.dataWarningEl.style("opacity", opacity);
@@ -1095,7 +1094,7 @@ export default class VizabiLineChart extends BaseComponent {
   /*
    * Highlights all hovered lines
    */
-  _highlightLines() {
+  highlightLines() {
     const _this = this;
     const KEYS = this.KEYS;
     const KEY = this.KEY;
@@ -1121,8 +1120,8 @@ export default class VizabiLineChart extends BaseComponent {
     this.nonSelectedOpacityZero = OPACITY_SELECT_DIM < 0.01;
     const selectedHash = {};
     selectedFilter.markers.forEach((v, k) => {
-        selectedHash[k] = true;
-      }
+      selectedHash[k] = true;
+    }
     );
     entityLines.style("opacity", (d) => {
       if (highlightedFilter.has(d)) return OPACITY_HIGHLT;
@@ -1153,13 +1152,13 @@ export default class VizabiLineChart extends BaseComponent {
         return "none";
       }
     })
-    .sort(function(x, y){
-      return d3.ascending(x.sortValue, y.sortValue);
-    });
+      .sort(function(x, y){
+        return d3.ascending(x.sortValue, y.sortValue);
+      });
 
   }
 
-  _zoomToMaxMin() { 
+  _zoomToMaxMin() {
     return;
     if (
       this.model.marker.axis_x.getZoomedMin() != null &&
