@@ -241,8 +241,8 @@ export default class VizabiLineChart extends BaseComponent {
       }
     });
     this.DOM.linesContainerCrop
-      .on("mousemove", this._entityMousemove.bind(this, null, null, this))
-      .on("mouseleave", this._entityMouseout.bind(this, null, null, this));
+      .on("mousemove", this._entityMousemove.bind(this))
+      .on("mouseleave", this._entityMouseout.bind(this));
 
   }
 
@@ -989,8 +989,8 @@ export default class VizabiLineChart extends BaseComponent {
     this.DOM.dataWarningEl.style("opacity", opacity);
   }
 
-  _entityMousemove(me, index, context, closestToMouse) {
-    const _this = context;
+  _entityMousemove() {
+    const _this = this;
     const KEY = _this.KEY;
     const {
       frame,
@@ -1077,8 +1077,8 @@ export default class VizabiLineChart extends BaseComponent {
     clearTimeout(_this.unhoverTimeout);
   }
 
-  _entityMouseout(me, index, context) {
-    const _this = context;    
+  _entityMouseout() {
+    const _this = this;    
     if (d3.event.relatedTarget && d3.select(d3.event.relatedTarget).classed("vzb-tooltip")) return;
 
     // hide and show things like it was before hovering
