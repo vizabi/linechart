@@ -262,7 +262,6 @@ export default class VizabiLineChart extends BaseComponent {
     this.xAxis.tickFormat(this.localise);
     
     this.TIMEDIM = this.MDL.frame.data.concept;
-    this.KEYS = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
         
     if (this.updateLayoutProfile()) return; //return if exists with error
     
@@ -485,7 +484,6 @@ export default class VizabiLineChart extends BaseComponent {
     this.MDL.x.scale.zoomed;
 
     const _this = this;
-    const KEYS = this.KEYS;
     const KEY = this.KEY;
     const {
       labelsContainer,
@@ -606,7 +604,6 @@ export default class VizabiLineChart extends BaseComponent {
     this.MDL.y.scale.zoomed;
 
     const _this = this;
-    const KEYS = this.KEYS;
     const KEY = this.KEY;
     const TIMEDIM = this.TIMEDIM;
     const {
@@ -1096,7 +1093,6 @@ export default class VizabiLineChart extends BaseComponent {
    */
   highlightLines() {
     const _this = this;
-    const KEYS = this.KEYS;
     const KEY = this.KEY;
     const OPACITY_HIGHLT = 1.0;
     const OPACITY_HIGHLT_DIM = 0.3;
