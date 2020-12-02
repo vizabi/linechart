@@ -381,8 +381,10 @@ export default class VizabiLineChart extends BaseComponent {
       .range(this.state.datawarning.doubtRange);
   }
 
-  _getCompoundLabelText(labelObj, keys) {
-    return keys.map(key => labelObj[key]).join(",");
+  _getLabelText(d) {
+    const labelObj = d.values ? d.values[0].label : d.label;
+    const dimensionsWithoutTime = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
+    return dimensionsWithoutTime.map(dim => labelObj[dim]).join(",");
   }
 
   updateUIStrings() {
@@ -566,12 +568,12 @@ export default class VizabiLineChart extends BaseComponent {
       })
       .merge(entityLabels);
 
-    this.addValueToLabel = this.data.length < this.state.chart.labels.min_number_of_entities_when_values_hide * KEYS.length;
+    this.addValueToLabel = this.data.length < this.state.chart.labels.min_number_of_entities_when_values_hide;
 
-    entityLabels.each(function(d, index) {
+    entityLabels.each(function(d) {
       const entity = d3.select(this);
 
-      const label = d.label = _this._getCompoundLabelText(d.values[0].label, KEYS);
+      const label = d.label = _this._getLabelText(d);
       d.name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
 
       if (!_this.addValueToLabel) { 
