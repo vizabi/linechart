@@ -1159,7 +1159,6 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   _zoomToMaxMin() {
-    return;
     if (
       this.model.marker.axis_x.getZoomedMin() != null &&
       this.model.marker.axis_x.getZoomedMax() != null) {
