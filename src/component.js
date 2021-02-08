@@ -388,34 +388,23 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   updateUIStrings() {
-    const conceptPropsY = Utils.getConceptProps(this.MDL.y, this.localise);
-    const conceptPropsX = Utils.getConceptProps(this.MDL.x, this.localise);
-    const conceptPropsColor = Utils.getConceptProps(this.MDL.color, this.localise);
 
     this.strings = {
       title: {
-        Y: conceptPropsY.name,
-        X: conceptPropsX.name,
-        C: conceptPropsColor.name,
+        Y: Utils.getConceptName(this.MDL.y, this.localise),
+        X: Utils.getConceptName(this.MDL.x, this.localise),
+        C: Utils.getConceptName(this.MDL.color, this.localise)
       },
       unit: {
-        Y: conceptPropsY.unit || "",
-        X: conceptPropsX.unit || "",
-        C: conceptPropsColor.unit || ""
+        Y: Utils.getConceptUnit(this.MDL.y),
+        X: Utils.getConceptUnit(this.MDL.x),
+        C: Utils.getConceptUnit(this.MDL.color)
       }
     };
 
+    const conceptPropsY = this.MDL.y.data.conceptProps;
     this.DOM.yInfoEl
       .style("opacity", Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
-
-    // if (this.strings.unit.Y === "unit/" + this.model.marker.axis_y.which) this.strings.unit.Y = "";
-    // if (this.strings.unit.X === "unit/" + this.model.marker.axis_x.which) this.strings.unit.X = "";
-    // if (this.strings.unit.C === "unit/" + this.model.marker.color.which) this.strings.unit.C = "";
-
-    // if (this.strings.unit.Y) this.strings.unit.Y = ", " + this.strings.unit.Y;
-    // if (this.strings.unit.X) this.strings.unit.X = ", " + this.strings.unit.X;
-    // if (this.strings.unit.C) this.strings.unit.C = ", " + this.strings.unit.C;
-    
   }
 
   updateTime() {
