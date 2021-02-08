@@ -382,9 +382,11 @@ export default class VizabiLineChart extends BaseComponent {
   }
 
   _getLabelText(d) {
-    const labelObj = d.values ? d.values[0].label : d.label;
-    const dimensionsWithoutTime = this.model.data.space.filter(dim => dim !== this.TIMEDIM);
-    return dimensionsWithoutTime.map(dim => labelObj[dim]).join(",");
+    if(d.values) d = d.values[0];
+
+    if (typeof d.label == "object") return Object.values(d.label).join(", ");
+    if (d.label != null) return "" + d.label;
+    return d[Symbol.for("key")];
   }
 
   updateUIStrings() {
