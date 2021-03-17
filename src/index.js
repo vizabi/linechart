@@ -95,9 +95,6 @@ export default class LineChart extends BaseComponent {
 
 LineChart.DEFAULT_UI = {
   chart: {
-    opacityHighlightDim: 0.1,
-    opacitySelectDim: 0.3,
-    opacityRegular: 1
   },
 };
 

@@ -305,7 +305,7 @@ export default class VizabiLineChart extends BaseComponent {
   drawForecastOverlay() {
     this.DOM.forecastOverlay.classed("vzb-hidden", 
       !this.MDL.frame.endBeforeForecast || 
-      !this.state.showForecastOverlay || 
+      !this.ui.showForecastOverlay || 
       (this.MDL.frame.value <= this.MDL.frame.endBeforeForecast)
     );
   }
@@ -377,8 +377,8 @@ export default class VizabiLineChart extends BaseComponent {
 
   setupDataWarningDoubtScale() {
     this.wScale = d3.scaleLinear()
-      .domain(this.state.datawarning.doubtDomain)
-      .range(this.state.datawarning.doubtRange);
+      .domain(this.ui.datawarning.doubtDomain)
+      .range(this.ui.datawarning.doubtRange);
   }
 
   _getLabelText(d) {
@@ -559,7 +559,7 @@ export default class VizabiLineChart extends BaseComponent {
       })
       .merge(entityLabels);
 
-    this.addValueToLabel = this.data.length < this.state.chart.labels.min_number_of_entities_when_values_hide;
+    this.addValueToLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
 
     entityLabels.each(function(d) {
       const entity = d3.select(this);
@@ -580,7 +580,7 @@ export default class VizabiLineChart extends BaseComponent {
     this.line = d3.line()
     //see https://bl.ocks.org/mbostock/4342190
     //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
-      .curve(d3[this.state.chart.curve || "curveMonotoneX"])
+      .curve(d3[this.ui.curve || "curveMonotoneX"])
       .x(d => this.xScale(d[0]))
       .y(d => this.yScale(d[1]));
   }
@@ -736,14 +736,14 @@ export default class VizabiLineChart extends BaseComponent {
 
 
     if (!this.hoveringNow && this.time - frame.start !== 0) {
-      if (!_this.state.chart.hideXAxisValue) xAxisEl.call(
+      if (!_this.ui.hideXAxisValue) xAxisEl.call(
         this.xAxis
           .highlightTransDuration(this.duration)
           .highlightValue(this.time)
       );
       verticalNow.style("opacity", 1);
     } else {
-      if (!this.state.chart.hideXAxisValue) xAxisEl.call(
+      if (!this.ui.hideXAxisValue) xAxisEl.call(
         this.xAxis
           .highlightValue("none")
       );
@@ -1018,7 +1018,7 @@ export default class VizabiLineChart extends BaseComponent {
       yAxisEl
     } = this.DOM;
 
-    if (_this.state.chart.whenHovering.showTooltip) {
+    if (_this.ui.whenHovering.showTooltip) {
       //position tooltip
       tooltip
       //.style("right", (_this.cropWidth - scaledTime + _this.marginRightAdjusted ) + "px")
@@ -1029,18 +1029,18 @@ export default class VizabiLineChart extends BaseComponent {
     }
 
     // bring the projection lines to the hovering point
-    if (_this.state.chart.whenHovering.hideVerticalNow) {
+    if (_this.ui.whenHovering.hideVerticalNow) {
       verticalNow.style("opacity", 0);
     }
 
-    if (_this.state.chart.whenHovering.showProjectionLineX) {
+    if (_this.ui.whenHovering.showProjectionLineX) {
       projectionX
         .style("opacity", 1)
         .attr("y2", scaledValue)
         .attr("x1", scaledTime)
         .attr("x2", scaledTime);
     }
-    if (_this.state.chart.whenHovering.showProjectionLineY) {
+    if (_this.ui.whenHovering.showProjectionLineY) {
       projectionY
         .style("opacity", 1)
         .attr("y1", scaledValue)
@@ -1048,11 +1048,11 @@ export default class VizabiLineChart extends BaseComponent {
         .attr("x1", scaledTime);
     }
 
-    if (_this.state.chart.whenHovering.higlightValueX) xAxisEl.call(
+    if (_this.ui.whenHovering.higlightValueX) xAxisEl.call(
       _this.xAxis.highlightValue(resolvedTime).highlightTransDuration(0)
     );
 
-    if (_this.state.chart.whenHovering.higlightValueY) yAxisEl.call(
+    if (_this.ui.whenHovering.higlightValueY) yAxisEl.call(
       _this.yAxis.highlightValue(resolvedValue).highlightTransDuration(0)
     );
 
@@ -1197,10 +1197,29 @@ export default class VizabiLineChart extends BaseComponent {
 }
 
 VizabiLineChart.DEFAULT_UI = {
+  showForecast: false,
+  showForecastOverlay: true,
+  pauseBeforeForecast: true,
+  opacityHighlight: 1.0,
+  opacitySelect: 1.0,
   opacityHighlightDim: 0.1,
   opacitySelectDim: 0.3,
-  opacityRegular: 1,
-  defaultTest: {
-    test3: "test3"
+  opacityRegular: 0.5,
+  hideXAxisValue: false,
+  curve: "curveMonotoneX",
+  whenHovering: {
+    showTooltip: false,
+    hideVerticalNow: false,
+    showProjectionLineX: false,
+    showProjectionLineY: false,
+    higlightValueX: false,
+    higlightValueY: false
+  },
+  labels: {
+    min_number_of_entities_when_values_hide: 3,
+  },
+  datawarning: {
+    doubtDomain: [],
+    doubtRange: []
   }
 };
