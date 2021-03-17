@@ -6,7 +6,7 @@ import {
   collisionResolver,
   axisSmart
 } from "VizabiSharedComponents";
-import { runInAction } from "mobx";
+import { runInAction, decorate, computed } from "mobx";
 
 const {ICON_WARN, ICON_QUESTION} = Icons;
 const PROFILE_CONSTANTS = {
@@ -84,7 +84,7 @@ const PROFILE_CONSTANTS_FOR_PROJECTOR = {
 
 //
 // LINE CHART COMPONENT
-export default class VizabiLineChart extends BaseComponent {
+class _VizabiLineChart extends BaseComponent {
 
   constructor(config) {
     config.template = `
@@ -246,8 +246,8 @@ export default class VizabiLineChart extends BaseComponent {
 
   }
 
-  draw() {
-    this.MDL = {
+  get MDL() {
+    return {
       frame: this.model.encoding.get("frame"),
       selected: this.model.encoding.get("selected"),
       highlighted: this.model.encoding.get("highlighted"),
@@ -256,6 +256,9 @@ export default class VizabiLineChart extends BaseComponent {
       color: this.model.encoding.get("color"),
       label: this.model.encoding.get("label")
     };
+  }
+
+  draw() {
     this.localise = this.services.locale.auto();
 
     this.yAxis.tickFormat(this.localise);
@@ -1196,7 +1199,7 @@ export default class VizabiLineChart extends BaseComponent {
 
 }
 
-VizabiLineChart.DEFAULT_UI = {
+_VizabiLineChart.DEFAULT_UI = {
   showForecast: false,
   showForecastOverlay: true,
   pauseBeforeForecast: true,
@@ -1223,3 +1226,7 @@ VizabiLineChart.DEFAULT_UI = {
     doubtRange: []
   }
 };
+
+export const VizabiLineChart = decorate(_VizabiLineChart, {
+  "MDL": computed
+});
