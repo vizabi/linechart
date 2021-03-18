@@ -336,9 +336,12 @@ class _VizabiLineChart extends BaseComponent {
     } = this.DOM;
     const _this = this;
 
+    this.treemenu = this.root.findChild({type: "TreeMenu"});
+
     yTitleEl
+      .classed("vzb-disabled", this.treemenu.state.ownReadiness !== Utils.STATUS.READY)
       .on("click", () => {
-        this.root.findChild({type: "TreeMenu"})
+        this.treemenu
           .encoding("y")
           .alignX("left")
           .alignY("top")
