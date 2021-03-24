@@ -274,7 +274,6 @@ class _VizabiLineChart extends BaseComponent {
     const zoomedY = this.MDL.y.scale.zoomed;
     this.xScale = this.MDL.x.scale.d3Scale.copy();
     this.xScale.domain(zoomedX);
-    this.MDL.frame.scale.config.domain = zoomedX;
 
     this.yScale = this.MDL.y.scale.d3Scale.copy();
     this.yScale.domain(zoomedY);
@@ -312,6 +311,7 @@ class _VizabiLineChart extends BaseComponent {
   setupEventHandlers() {
     const {
       yTitleEl,
+      xTitleEl,
       yInfoEl,
       dataWarningEl
     } = this.DOM;
@@ -326,6 +326,17 @@ class _VizabiLineChart extends BaseComponent {
           .encoding("y")
           .alignX("left")
           .alignY("top")
+          .updateView()
+          .toggle();
+      });
+
+    xTitleEl
+      .classed("vzb-disabled", this.treemenu.state.ownReadiness !== Utils.STATUS.READY)
+      .on("click", () => {
+        this.treemenu
+          .encoding("x")
+          .alignX("right")
+          .alignY("bottom")
           .updateView()
           .toggle();
       });
@@ -474,6 +485,10 @@ class _VizabiLineChart extends BaseComponent {
       .text(this.localise("hints/no-data-available"));
   }
 
+  _isFrameOnXaxis(){
+    return this.MDL.frame.data.concept === this.MDL.x.data.concept;
+  }
+
   /*
    * UPDATE SHOW:
    * Ideally should only update when show parameters change or data changes
@@ -577,7 +592,7 @@ class _VizabiLineChart extends BaseComponent {
     this.line = d3.line()
     //see https://bl.ocks.org/mbostock/4342190
     //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
-      .curve(d3[this.ui.curve || "curveMonotoneX"])
+      .curve(d3[(this._isFrameOnXaxis() && this.ui.curve) ? this.ui.curve : "curveLinear"])
       .x(d => this.xScale(d[0]))
       .y(d => this.yScale(d[1]));
   }
@@ -598,7 +613,6 @@ class _VizabiLineChart extends BaseComponent {
 
     const _this = this;
     const KEY = this.KEY;
-    const TIMEDIM = this.TIMEDIM;
     const {
       entityLines,
       entityLabels,
@@ -614,13 +628,13 @@ class _VizabiLineChart extends BaseComponent {
         const entity = d3.select(this);
           
         const xy = d.values.slice(0, (_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex)
-          .map(point => [point[TIMEDIM], point.y])
+          .map(point => [point.x, point.y])
           .filter(d => d[1] || d[1] === 0);
 
         // add last point
-        const currentY = (_this.model.dataMap.getByObjOrStr(undefined, d[KEY]) || {}).y;
-        if (currentY || currentY === 0) {
-          xy.push([_this.time, currentY]);
+        const currentPoint = _this.model.dataMap.getByObjOrStr(undefined, d[KEY]) || {};
+        if ((currentPoint.y || currentPoint.y === 0) && (currentPoint.x || currentPoint.x === 0)) {
+          xy.push([currentPoint.x, currentPoint.y]);
         }
 
         if (xy.length > 0) {
@@ -727,15 +741,16 @@ class _VizabiLineChart extends BaseComponent {
             .classed("vzb-hidden", true);
         }
       });
-    verticalNow
-      .transition()
-      .duration(_this.duration)
-      .ease(d3.easeLinear)
-      .attr("transform", "translate(" + _this.xScale(_this.time//d3.min([_this.model.marker.axis_x.getZoomedMax(), _this.time])
-      ) + ",0)");
 
+    if (this._isFrameOnXaxis()){
+      verticalNow
+        .transition()
+        .duration(_this.duration)
+        .ease(d3.easeLinear)
+        .attr("transform", "translate(" + _this.xScale(_this.time) + ",0)");
+    }
 
-    if (!this.hoveringNow && this.time - frame.start !== 0) {
+    if (this._isFrameOnXaxis() && !this.hoveringNow && this.time - frame.start !== 0) {
       if (!_this.ui.hideXAxisValue) xAxisEl.call(
         this.xAxis
           .highlightTransDuration(this.duration)
@@ -954,7 +969,7 @@ class _VizabiLineChart extends BaseComponent {
       verticalNow.style("opacity", 1);
       projectionX.style("opacity", 0);
       projectionY.style("opacity", 0);
-      xAxisEl.call(this.xAxis.highlightValue(this.time));
+      xAxisEl.call(this.xAxis.highlightValue(this._isFrameOnXaxis() ? this.time : "none"));
       yAxisEl.call(this.yAxis.highlightValue("none"));
       graph.selectAll(".vzb-lc-entity").each(function() {
         d3.select(this).classed("vzb-dimmed", false).classed("vzb-hovered", false);
@@ -1049,11 +1064,11 @@ class _VizabiLineChart extends BaseComponent {
     }
 
     if (_this.ui.whenHovering.higlightValueX) xAxisEl.call(
-      _this.xAxis.highlightValue(resolvedTime).highlightTransDuration(0)
+      _this.xAxis.highlightValue(this._isFrameOnXaxis() ? resolvedTime : "none").highlightTransDuration(0)
     );
 
     if (_this.ui.whenHovering.higlightValueY) yAxisEl.call(
-      _this.yAxis.highlightValue(resolvedValue).highlightTransDuration(0)
+      _this.yAxis.highlightValue(this._isFrameOnXaxis() ? resolvedValue : "none").highlightTransDuration(0)
     );
 
     clearTimeout(_this.unhoverTimeout);
@@ -1071,7 +1086,7 @@ class _VizabiLineChart extends BaseComponent {
       DOM.verticalNow.style("opacity", 1);
       DOM.projectionX.style("opacity", 0);
       DOM.projectionY.style("opacity", 0);
-      DOM.xAxisEl.call(_this.xAxis.highlightValue(_this.time));
+      DOM.xAxisEl.call(_this.xAxis.highlightValue(this._isFrameOnXaxis() ? _this.time : "none"));
       DOM.yAxisEl.call(_this.yAxis.highlightValue("none"));
 
       if (_this.hoveringNow) _this.MDL.highlighted.data.filter.delete(_this.hoveringNow);
