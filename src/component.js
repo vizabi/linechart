@@ -119,6 +119,9 @@ class _VizabiLineChart extends BaseComponent {
                   <text></text>
               </g>
 
+              <g class="no-data-message vzb-hidden">                  
+                  <text></text>
+              </g>
 
               <!--filter id="vzb-lc-filter-dropshadow"> 
                 <feOffset result="offOut" in="SourceGraphic" dx="0" dy="2" />
@@ -188,6 +191,8 @@ class _VizabiLineChart extends BaseComponent {
       labelsContainer: this.element.select(".vzb-lc-labels"),
 
       dataWarningEl: this.element.select(".vzb-data-warning"),
+      noDataMessage: this.element.select(".no-data-message"),
+
 
       tooltip: this.element.select(".vzb-tooltip"),
       //filterDropshadowEl: this.element.select('#vzb-lc-filter-dropshadow'),
@@ -285,6 +290,7 @@ class _VizabiLineChart extends BaseComponent {
     this.addReaction(this.redrawDataPoints);
     this.addReaction(this.highlightLines);
     this.addReaction(this.updateDoubtOpacity);
+    this.addReaction(this.updateNoDataMessage);
   
   }
 
@@ -472,7 +478,24 @@ class _VizabiLineChart extends BaseComponent {
       if (!data.has(key)) data.set(key, { [KEY]: key, values:[] });
       data.get(key).values.push(valuesObj);
     }));
-    return data;
+    
+    return [...data.values()].map(d => {
+      d.shiftIndex = this.MDL.frame.stepScale.invert(d.values[0][this.TIMEDIM]);
+      return d;
+    });
+  }
+
+  updateNoDataMessage(){
+    this.services.layout.size;
+    this.DOM.noDataMessage
+      .classed("vzb-hidden", this._processFramesData().length);
+
+    if (this._processFramesData().length) return;
+
+    this.DOM.noDataMessage
+      .attr("transform", `translate(${this.width/2 - this.profileConstants.margin.left}, ${this.height/2})`)
+      .select("text")
+      .text(this.localise("hints/no-data-available"));
   }
 
   /*
@@ -492,17 +515,9 @@ class _VizabiLineChart extends BaseComponent {
       entityLabels
     } = this.DOM;
     
-    const {
-      frame
-    } = this.MDL;
-
     this.cached = {};
 
-    const TIMEDIM = this.TIMEDIM;
-    this.data = [...this._processFramesData().values()].map(d => {
-      d.shiftIndex = frame.stepScale.invert(d.values[0][TIMEDIM]);
-      return d;
-    });
+    this.data = this._processFramesData();
     entityLines = entityLines.data(this.data, d => d[KEY]);
     entityLines.exit().remove();
 
@@ -601,6 +616,9 @@ class _VizabiLineChart extends BaseComponent {
     this.MDL.y.scale.type;
     this.MDL.x.scale.zoomed;
     this.MDL.y.scale.zoomed;
+
+    if ([...this.xScale.domain(), ...this.yScale.domain()].some(s => s==null || isNaN(s))) 
+      return utils.warn(`Line chart redrawDataPoints() short circuit because scale domain looks bad`, this.xScale.domain(), this.yScale.domain());
 
     const _this = this;
     const KEY = this.KEY;

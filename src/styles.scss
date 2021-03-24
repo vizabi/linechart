@@ -20,6 +20,10 @@
     .vzb-linechart-svg {
       @extend %vzb-chart-svg;
 
+      .no-data-message {
+        text-anchor: middle;
+      }
+
       .vzb-lc-axis-x,
       .vzb-lc-axis-y {
         @extend %vzb-chart-axis;
