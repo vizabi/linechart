@@ -150,31 +150,6 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   setup() {
-    this.state = {
-      showForecastOverlay: false,
-      opacityHighlightDim: 0.1,
-      opacitySelectDim: 0.3,
-      opacityRegular: 1,
-      datawarning: {
-        doubtDomain: [],
-        doubtRange: []
-      },
-      "chart": {
-        "curve": "curveMonotoneX",
-        "labels": {
-          "min_number_of_entities_when_values_hide": 2 //values hide when showing 2 entities or more
-        },
-        "whenHovering": {
-          "hideVerticalNow": false,
-          "showProjectionLineX": true,
-          "showProjectionLineY": true,
-          "higlightValueX": true,
-          "higlightValueY": true,
-          "showTooltip": false
-        }
-      }
-    };
-
     this.DOM = {
       element: this.element,
       graph: this.element.select(".vzb-lc-graph"),
@@ -388,9 +363,10 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   setupDataWarningDoubtScale() {
-    this.wScale = d3.scaleLinear()
-      .domain(this.ui.datawarning.doubtDomain)
-      .range(this.ui.datawarning.doubtRange);
+    this.wScale = this.MDL.frame.scale.d3Scale.copy()
+      .domain(this.ui.datawarning.doubtDomain.map(m => this.MDL.frame.parse("" + m)))
+      .range(this.ui.datawarning.doubtRange)
+      .clamp(true);
   }
 
   _getLabelText(d) {
@@ -990,8 +966,8 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   updateDoubtOpacity(opacity) {
-    if (opacity == null) opacity = this.wScale(+this.time.getUTCFullYear().toString());
-    if (this.someSelected) opacity = 1;
+    if (opacity == null) opacity = this.wScale(this.MDL.frame.value);
+    if (this.MDL.selected.data.filter.any()) opacity = 1;
     this.DOM.dataWarningEl.style("opacity", opacity);
   }
 
