@@ -80,14 +80,13 @@ export default class LineChart extends BaseComponent {
 
     config.services = {
       locale: new LocaleService(config.locale),
-      layout: new LayoutService({placeholder: config.placeholder})
+      layout: new LayoutService(config.layout)
     };
 
     //register locale service in the marker model
     config.model.config.markers.line.data.locale = observable({
       get id() { return config.services.locale.id; }
     });
-    //config.model.config.markers.line.data.locale = config.services.locale;
 
     super(config);
   }
