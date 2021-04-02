@@ -375,7 +375,7 @@ class _VizabiLineChart extends BaseComponent {
 
   setupDataWarningDoubtScale() {
     this.wScale = this.MDL.frame.scale.d3Scale.copy()
-      .domain(this.ui.datawarning.doubtDomain.map(m => this.MDL.frame.parse("" + m)))
+      .domain(this.ui.datawarning.doubtDomain.map(m => this.MDL.frame.parseValue("" + m)))
       .range(this.ui.datawarning.doubtRange)
       .clamp(true);
   }
