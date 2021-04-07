@@ -19,7 +19,7 @@ const VERSION_INFO = { version: __VERSION, build: __BUILD };
 export default class LineChart extends BaseComponent {
 
   constructor(config){
-    const marker = config.model.stores.markers.get("line");
+    const marker = config.model.markers.line;
 
     config.name = "linechart";
 
@@ -82,11 +82,6 @@ export default class LineChart extends BaseComponent {
       locale: new LocaleService(config.locale),
       layout: new LayoutService(config.layout)
     };
-
-    //register locale service in the marker model
-    config.model.config.markers.line.data.locale = observable({
-      get id() { return config.services.locale.id; }
-    });
 
     super(config);
   }
