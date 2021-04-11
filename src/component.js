@@ -287,9 +287,10 @@ class _VizabiLineChart extends BaseComponent {
 
   drawForecastOverlay() {
     this.DOM.forecastOverlay.classed("vzb-hidden", 
-      !this.MDL.frame.endBeforeForecast || 
-      !this.ui.showForecastOverlay || 
-      (this.MDL.frame.value <= this.MDL.frame.endBeforeForecast)
+    !this.ui.showForecast || 
+    !this.ui.showForecastOverlay || 
+    !this.ui.endBeforeForecast || 
+      (this.MDL.frame.value <= this.MDL.frame.parseValue(this.ui.endBeforeForecast))
     );
   }
 
