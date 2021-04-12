@@ -383,7 +383,11 @@ class _VizabiLineChart extends BaseComponent {
   _getLabelText(d) {
     if(d.values) d = d.values[0];
 
-    if (typeof d.label == "object") return Object.values(d.label).join(", ");
+    if (typeof d.label == "object") 
+      return Object.entries(d.label)
+        .filter(entry => entry[0] != this.MDL.frame.data.concept)
+        .map(entry => entry[1])
+        .join(", ");
     if (d.label != null) return "" + d.label;
     return d[Symbol.for("key")];
   }
