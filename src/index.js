@@ -12,10 +12,6 @@ import {
   ButtonList 
 } from "VizabiSharedComponents";
 import { VizabiLineChart } from "./component.js";
-import { observable } from "mobx";
-
-const VERSION_INFO = { version: __VERSION, build: __BUILD };
-
 export default class LineChart extends BaseComponent {
 
   constructor(config){
@@ -92,6 +88,6 @@ LineChart.DEFAULT_UI = {
   },
 };
 
-LineChart.versionInfo = VERSION_INFO;
+LineChart.versionInfo = { version: __VERSION, build: __BUILD };
 
 
