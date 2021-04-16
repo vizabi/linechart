@@ -8,7 +8,7 @@ import {
 } from "VizabiSharedComponents";
 import { runInAction, decorate, computed } from "mobx";
 
-const {ICON_WARN, ICON_QUESTION} = Icons;
+const {ICON_QUESTION} = Icons;
 const PROFILE_CONSTANTS = {
   SMALL: {
     margin: {
@@ -114,11 +114,6 @@ class _VizabiLineChart extends BaseComponent {
               </g>
               <g class="vzb-lc-axis-y-info"></g>
 
-              <g class="vzb-data-warning vzb-noexport">
-                  <svg></svg>
-                  <text></text>
-              </g>
-
               <g class="no-data-message vzb-hidden">                  
                   <text></text>
               </g>
@@ -136,6 +131,7 @@ class _VizabiLineChart extends BaseComponent {
 
           </g>
           <rect class="vzb-lc-forecastoverlay vzb-hidden" x="0" y="0" width="100%" height="100%" fill="url(#vzb-lc-pattern-lines)" pointer-events='none'></rect>
+          <g class="vzb-datawarning-button vzb-noexport"></g>
       </svg>
       <div class="vzb-tooltip vzb-hidden"></div>
       <svg>
@@ -157,17 +153,14 @@ class _VizabiLineChart extends BaseComponent {
       xAxisElContainer: this.element.select(".vzb-lc-axis-x"),
       yAxisElContainer: this.element.select(".vzb-lc-axis-y"),
   
-      xTitleEl: this.element.select(".vzb-lc-axis-x-title"),
-      yTitleEl: this.element.select(".vzb-lc-axis-y-title"),
-      yInfoEl: this.element.select(".vzb-lc-axis-y-info"),
+      xTitle: this.element.select(".vzb-lc-axis-x-title"),
+      yTitle: this.element.select(".vzb-lc-axis-y-title"),
+      yInfo: this.element.select(".vzb-lc-axis-y-info"),
       linesContainerCrop: this.element.select(".vzb-lc-lines-crop"),
       linesContainer: this.element.select(".vzb-lc-lines"),
       labelsContainerCrop: this.element.select(".vzb-lc-labels-crop"),
       labelsContainer: this.element.select(".vzb-lc-labels"),
-
-      dataWarningEl: this.element.select(".vzb-data-warning"),
       noDataMessage: this.element.select(".no-data-message"),
-
 
       tooltip: this.element.select(".vzb-tooltip"),
       //filterDropshadowEl: this.element.select('#vzb-lc-filter-dropshadow'),
@@ -192,6 +185,8 @@ class _VizabiLineChart extends BaseComponent {
         return (d.valueX - time === 0 && !d.hidden);
       })
       .KEY(this.KEY);
+
+    this._initInfoElements();
 
     this.xScale = null;
     this.yScale = null;
@@ -251,20 +246,15 @@ class _VizabiLineChart extends BaseComponent {
     this.addReaction(this.drawForecastOverlay);
     this.addReaction(this.constructScales);
     this.addReaction(this.constructColorScale);
-
-    this.addReaction(this.setupIcons);
-    this.addReaction(this.setupEventHandlers);
-    this.addReaction(this.setupDataWarningDoubtScale);
-  
+   
     this.addReaction(this.updateTime);
     this.addReaction(this.updateUIStrings);
     this.addReaction(this.updateShow);
     this.addReaction(this.updateColors);
     this.addReaction(this.updateSize);
-
+    
     this.addReaction(this.redrawDataPoints);
     this.addReaction(this.highlightLines);
-    this.addReaction(this.updateDoubtOpacity);
     this.addReaction(this.updateNoDataMessage);
   
   }
@@ -294,91 +284,30 @@ class _VizabiLineChart extends BaseComponent {
     );
   }
 
-  setupIcons() {
-    const {
-      yInfoEl,
-      dataWarningEl
-    } = this.DOM;
-
-    utils.setIcon(yInfoEl, ICON_QUESTION).select("svg")
-      .attr("width", "0px").attr("height", "0px");
-
-    utils.setIcon(dataWarningEl, ICON_WARN).select("svg")
-      .attr("width", "0px").attr("height", "0px");
-    dataWarningEl.append("text")
-      .attr("text-anchor", "end");
-  }
-
-  setupEventHandlers() {
-    const {
-      yTitleEl,
-      xTitleEl,
-      yInfoEl,
-      dataWarningEl
-    } = this.DOM;
+  _initInfoElements() {
     const _this = this;
+    const dataNotesDialog = () => this.root.findChild({type: "DataNotes"});
+    const timeSlider = () => this.root.findChild({type: "TimeSlider"});
 
-    this.treemenu = this.root.findChild({type: "TreeMenu"});
-
-    yTitleEl
-      .classed("vzb-disabled", this.treemenu.state.ownReadiness !== Utils.STATUS.READY)
+    utils.setIcon(this.DOM.yInfo, ICON_QUESTION)
       .on("click", () => {
-        this.treemenu
-          .encoding("y")
-          .alignX("left")
-          .alignY("top")
-          .updateView()
-          .toggle();
-      });
-
-    xTitleEl
-      .classed("vzb-disabled", this.treemenu.state.ownReadiness !== Utils.STATUS.READY)
-      .on("click", () => {
-        this.treemenu
-          .encoding("x")
-          .alignX("right")
-          .alignY("bottom")
-          .updateView()
-          .toggle();
-      });
-
-    const dataNotes = this.root.findChild({type: "DataNotes"});
-
-    yInfoEl
-      .on("click", () => {
-        dataNotes.pin();
+        dataNotesDialog().pin();
       })
       .on("mouseover", function() {
+        if (timeSlider().ui.dragging) return;
         const rect = this.getBBox();
-        const ctx = utils.makeAbsoluteContext(this, this.farthestViewportElement);
-        const coord = ctx(rect.x - 10, rect.y + rect.height + 10);
-        dataNotes
+        const coord = utils.makeAbsoluteContext(this, this.farthestViewportElement)(rect.x - 10, rect.y + rect.height + 10);
+        const toolRect = _this.root.element.node().getBoundingClientRect();
+        const chartRect = _this.element.node().getBoundingClientRect();
+        dataNotesDialog()
           .setEncoding(_this.MDL.y)
           .show()
-          .setPos(coord.x, coord.y);
+          .setPos(coord.x + chartRect.left - toolRect.left, coord.y);
       })
       .on("mouseout", () => {
-        dataNotes.hide();
+        if (timeSlider().ui.dragging) return;
+        dataNotesDialog().hide();
       });
-    
-    dataWarningEl
-      .on("click", () => {
-        this.root.findChild({type: "DataWarning"}).toggle();
-      })
-      .on("mouseover", () => {
-        this.updateDoubtOpacity(1);
-      })
-      .on("mouseout", () => {
-        this.updateDoubtOpacity();
-      });
-
-  }
-
-  setupDataWarningDoubtScale() {
-    this.wScale = this.MDL.frame.scale.d3Scale.copy()
-      .domain(this.ui.datawarning.doubtDomain.map(m => this.MDL.frame.parseValue("" + m)))
-      .range(this.ui.datawarning.doubtRange)
-      .clamp(true);
   }
 
   _getLabelText(d) {
@@ -408,8 +337,32 @@ class _VizabiLineChart extends BaseComponent {
       }
     };
 
+    const treemenu = this.root.findChild({type: "TreeMenu"});
+
+    this.DOM.yTitle
+      .classed("vzb-disabled", treemenu.state.ownReadiness !== Utils.STATUS.READY)
+      .on("click", () => {
+        treemenu
+          .encoding("y")
+          .alignX("left")
+          .alignY("top")
+          .updateView()
+          .toggle();
+      });
+
+    this.DOM.xTitle
+      .classed("vzb-disabled", treemenu.state.ownReadiness !== Utils.STATUS.READY)
+      .on("click", () => {
+        treemenu
+          .encoding("x")
+          .alignX("right")
+          .alignY("bottom")
+          .updateView()
+          .toggle();
+      });
+
     const conceptPropsY = this.MDL.y.data.conceptProps;
-    this.DOM.yInfoEl
+    this.DOM.yInfo
       .style("opacity", Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
   }
 
@@ -818,10 +771,9 @@ class _VizabiLineChart extends BaseComponent {
       xAxisEl,
       yAxisElContainer,
       yAxisEl,
-      xTitleEl,
-      yTitleEl,
-      yInfoEl,
-      dataWarningEl,
+      xTitle,
+      yTitle,
+      yInfo,
       tooltip,
       verticalNow,
       projectionX,
@@ -925,22 +877,9 @@ class _VizabiLineChart extends BaseComponent {
     yAxisEl.call(this.yAxis);
     xAxisEl.call(this.xAxis);
 
+    const xTitleText = xTitle.select("text").text(this.strings.title.X + this.strings.unit.X);
 
-    const warnBB = dataWarningEl.select("text").node().getBBox();
-    dataWarningEl.select("svg")
-      .attr("width", warnBB.height * 0.75)
-      .attr("height", warnBB.height * 0.75)
-      .attr("x", -warnBB.width - warnBB.height * 1.2)
-      .attr("y", -warnBB.height * 0.65);
-
-    dataWarningEl
-      .attr("transform", "translate(" + (this.cropWidth + marginRightAdjusted * 0.85) +
-        ",-" + yAxisTitleBottomMargin + ")")
-      .select("text").text(this.localise("hints/dataWarning"));
-
-    const xTitleText = xTitleEl.select("text").text(this.strings.title.X + this.strings.unit.X);
-
-    xTitleEl
+    xTitle
       .style("font-size", infoElHeight + "px")
       .attr("transform", "translate(" +
         (this.cropWidth + text_padding + yAxisTitleBottomMargin) + "," +
@@ -948,17 +887,17 @@ class _VizabiLineChart extends BaseComponent {
 
     if (xTitleText.node().getBBox().width > this.cropWidth - 100) xTitleText.text(this.strings.title.X);
 
-    const yTitleText = yTitleEl.select("text").text(this.strings.title.Y + this.strings.unit.Y);
+    const yTitleText = yTitle.select("text").text(this.strings.title.Y + this.strings.unit.Y);
     if (yTitleText.node().getBBox().width > this.cropWidth) yTitleText.text(this.strings.title.Y);
 
-    yTitleEl
+    yTitle
       .style("font-size", infoElHeight + "px")
       .attr("transform", "translate(" + (10 - margin.left + (isRTL ? infoElHeight * 1.4 : 0 )) + ", -" + yAxisTitleBottomMargin + ")");
 
-    const titleBBox = yTitleEl.node().getBBox();
-    const t = utils.transform(yTitleEl.node());
+    const titleBBox = yTitle.node().getBBox();
+    const t = utils.transform(yTitle.node());
 
-    yInfoEl.attr("transform", "translate("
+    yInfo.attr("transform", "translate("
       + (isRTL ? 10 - margin.left : titleBBox.x + t.translateX + titleBBox.width + infoElHeight * 0.4) + ","
       + (t.translateY - infoElHeight * 0.8) + ")")
       .select("svg").attr("width", infoElHeight + "px").attr("height", infoElHeight + "px");
@@ -983,12 +922,15 @@ class _VizabiLineChart extends BaseComponent {
       this.hoveringNow = null;
     }
 
-  }
-
-  updateDoubtOpacity(opacity) {
-    if (opacity == null) opacity = this.wScale(this.MDL.frame.value);
-    if (this.MDL.selected.data.filter.any()) opacity = 1;
-    this.DOM.dataWarningEl.style("opacity", opacity);
+    this.root.findChild({type: "_DataWarning"}).setOptions({
+      width: this.width,
+      height: this.height,
+      vertical: "top", 
+      horizontal: "right", 
+      right: 30,
+      top: margin.top + titleBBox.y,
+      wLimit: this.width - titleBBox.width - infoElHeight * 2
+    });
   }
 
   _entityMousemove() {
@@ -1237,10 +1179,6 @@ _VizabiLineChart.DEFAULT_UI = {
   },
   labels: {
     min_number_of_entities_when_values_hide: 3,
-  },
-  datawarning: {
-    doubtDomain: [],
-    doubtRange: []
   }
 };
 

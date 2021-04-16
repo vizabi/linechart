@@ -42,7 +42,9 @@ export default class LineChart extends BaseComponent {
     },{
       type: DataWarning,
       placeholder: ".vzb-datawarning",
-      model: marker
+      options: {button: ".vzb-datawarning-button"},
+      model: marker,
+      name: "data-warning"
     },{
       type: DataNotes,
       placeholder: ".vzb-datanotes",
@@ -70,8 +72,8 @@ export default class LineChart extends BaseComponent {
         <div class="vzb-buttonlist"></div>
       </div>
       <div class="vzb-treemenu"></div>
-      <div class="vzb-datawarning"></div>
       <div class="vzb-datanotes"></div>
+      <div class="vzb-datawarning"></div>
     `;
 
     config.services = {
