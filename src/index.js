@@ -15,6 +15,9 @@ import { VizabiLineChart } from "./component.js";
 export default class LineChart extends BaseComponent {
 
   constructor(config){
+
+    Vizabi.utils.applyDefaults(config.model.markers.line.config, LineChart.DEFAULT_CORE);  
+
     const marker = config.model.markers.line;
 
     config.name = "linechart";
@@ -89,7 +92,53 @@ LineChart.DEFAULT_UI = {
   chart: {
   },
 };
+LineChart.DEFAULT_CORE = {
+requiredEncodings: ["x", "y"],
+  encoding: {
+    "selected": {
+      modelType: "selection"
+    },
+    "highlighted": {
+      modelType: "selection"
+    },
+    "y": {
+      scale: {
+        allowedTypes: ["linear", "log", "genericLog", "pow"]
+      }
+    },
+    "x": {
+      data: {
+        concept: { 
+          ref: "markers.line.encoding.frame.data.concept"
+        }
+      },
+      scale: {
+        allowedTypes: ["linear", "log", "genericLog", "pow", "time"]
+      }
+    },
+    "color": {
+      data: {
+        allow: {
+          space: {
+            filter: {
+              concept_type: { $ne: "time" }
+            }
+          }
+        }
+      },
+      scale: {
+        modelType: "color"
+      }
+    },
+    "label": {
+      data: {
+        modelType: "entityPropertyDataConfig",
+      }
+    },
+    frame: {
+      modelType: "frame"
+    }
+  }
+}
 
 LineChart.versionInfo = { version: __VERSION, build: __BUILD };
-
-
