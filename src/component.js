@@ -372,7 +372,7 @@ class _VizabiLineChart extends BaseComponent {
     this.time = frame.value;
     this.duration = frame.playing && (this.time - time_1 > 0) ? frame.speed || 0 : 0;
 
-    this.stepIndex = frame.stepScale.invert(this.time);
+    this.stepIndex = frame.stepScale(this.time);
   }
 
   updateColors() {
@@ -425,7 +425,7 @@ class _VizabiLineChart extends BaseComponent {
     }));
     
     return [...data.values()].map(d => {
-      d.shiftIndex = this.MDL.frame.stepScale.invert(d.values[0][this.TIMEDIM]);
+      d.shiftIndex = this.MDL.frame.stepScale(d.values[0][this.TIMEDIM]);
       return d;
     });
   }
