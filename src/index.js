@@ -9,7 +9,8 @@ import {
   TreeMenu,
   SteppedSlider,
   Dialogs,
-  ButtonList 
+  ButtonList,
+  versionInfo
 } from "VizabiSharedComponents";
 import { VizabiLineChart } from "./component.js";
 export default class LineChart extends BaseComponent {
@@ -141,4 +142,4 @@ requiredEncodings: ["x", "y"],
   }
 }
 
-LineChart.versionInfo = { version: __VERSION, build: __BUILD };
+LineChart.versionInfo = { version: __VERSION, build: __BUILD, package: __PACKAGE_JSON_FIELDS, sharedComponents: versionInfo};

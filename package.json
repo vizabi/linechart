@@ -1,13 +1,13 @@
 {
   "name": "vizabi-linechart",
-  "version": "3.4.4",
-  "description": "Line chart tool for Vizabi 📊",
+  "version": "3.4.5",
+  "description": "Vizabi line chart",
   "scripts": {
     "prepublishOnly": "npm run build",
     "link": "npm link ../vizabi-shared-components",
     "start": "rollup -c",
     "build": "cross-env NODE_ENV=production rollup -c",
-    "postinstall": "npm run link"
+    "deploy": "tool-deploy"
   },
   "main": "build/linechart.js",
   "files": [
@@ -18,15 +18,34 @@
     "url": "git+https://github.com/vizabi/vizabi-linechart.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Gapminder Foundation",
+    "url": "https://www.gapminder.org",
+    "email": "info@gapminder.org"
+  },
+  "contributors": [
+    {
+      "name": "Angie",
+      "url": "https://github.com/angieskazka"
+    },
+    {
+      "name": "Jasper",
+      "url": "https://github.com/jheeffer"
+    },
+    {
+      "name": "Dima",
+      "url": "https://github.com/dab2000"
+    }
+  ],
+  "license": "CC-BY-4.0",
   "bugs": {
     "url": "https://github.com/vizabi/vizabi-linechart/issues"
   },
   "homepage": "https://github.com/vizabi/vizabi-linechart#readme",
   "devDependencies": {
     "cross-env": "^5.0.0",
-    "vizabi-shared-components": "github:vizabi/vizabi-shared-components",
-    "vizabi-tool-bundler": "github:vizabi/vizabi-tool-bundler"
+    "css.escape": "^1.5.1",
+    "vizabi-shared-components": "../vizabi-shared-components",
+    "vizabi-tool-bundler": "1.0.2"
   }
 }
