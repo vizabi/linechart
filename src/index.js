@@ -10,6 +10,7 @@ import {
   SteppedSlider,
   Dialogs,
   ButtonList,
+  CapitalVizabiService,
   versionInfo
 } from "VizabiSharedComponents";
 import { VizabiLineChart } from "./component.js";
@@ -17,7 +18,7 @@ export default class LineChart extends BaseComponent {
 
   constructor(config){
 
-    Vizabi.utils.applyDefaults(config.model.markers.line.config, LineChart.DEFAULT_CORE);  
+    config.Vizabi.utils.applyDefaults(config.model.markers.line.config, LineChart.DEFAULT_CORE);  
 
     const marker = config.model.markers.line;
 
@@ -81,6 +82,7 @@ export default class LineChart extends BaseComponent {
     `;
 
     config.services = {
+      Vizabi: new CapitalVizabiService({Vizabi: config.Vizabi}),
       locale: new LocaleService(config.locale),
       layout: new LayoutService(config.layout)
     };
@@ -94,7 +96,7 @@ LineChart.DEFAULT_UI = {
   },
 };
 LineChart.DEFAULT_CORE = {
-requiredEncodings: ["x", "y"],
+  requiredEncodings: ["x", "y"],
   encoding: {
     "selected": {
       modelType: "selection"
@@ -140,6 +142,6 @@ requiredEncodings: ["x", "y"],
       modelType: "frame"
     }
   }
-}
+};
 
 LineChart.versionInfo = { version: __VERSION, build: __BUILD, package: __PACKAGE_JSON_FIELDS, sharedComponents: versionInfo};
