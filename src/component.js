@@ -590,7 +590,7 @@ class _VizabiLineChart extends BaseComponent {
           .filter(d => d[1] || d[1] === 0);
 
         // add last point
-        const currentPoint = _this.model.dataMap.getByObjOrStr(undefined, d[KEY]) || {};
+        const currentPoint = _this.model.dataMap.getByStr(d[KEY]) || {};
         if ((currentPoint.y || currentPoint.y === 0) && (currentPoint.x || currentPoint.x === 0)) {
           xy.push([currentPoint.x, currentPoint.y]);
         }
@@ -956,8 +956,8 @@ class _VizabiLineChart extends BaseComponent {
 
     const data = _this.model.getDataMapByFrameValue(resolvedTime);
     const nearestKey = _this._getNearestKey(mousePos, data, "y", _this.yScale.bind(_this));
-    if (!data.hasByObjOrStr(undefined, nearestKey)) return;
-    const resolvedValue = data.getByObjOrStr(undefined, nearestKey)["y"];
+    if (!data.hasByStr(nearestKey)) return;
+    const resolvedValue = data.getByStr(nearestKey)["y"];
     const hoveringNow = {[KEY]: nearestKey};
     if (!highlightedFilter.has(hoveringNow)) {
       runInAction(() => {
@@ -1141,7 +1141,7 @@ class _VizabiLineChart extends BaseComponent {
    */
   _getNearestKey(val, values, propName, fn) {
     const keys = (this.someSelected && this.nonSelectedOpacityZero) ?
-      [...this.MDL.selected.data.filter.markers.keys()].filter(key => values.hasByObjOrStr(undefined, key))
+      [...this.MDL.selected.data.filter.markers.keys()].filter(key => values.hasByStr(key))
       :
       [...values.keys()];
 
@@ -1149,7 +1149,7 @@ class _VizabiLineChart extends BaseComponent {
     for (let i = 1; i < keys.length; i++) {
       let key = keys[i];
       
-      if (Math.abs((fn ? fn(values.getByObjOrStr(undefined, key)[propName]) : values.getByObjOrStr(undefined, key)[propName]) - val) < Math.abs((fn ? fn(values.getByObjOrStr(undefined, resKey)[propName]) : values.getByObjOrStr(undefined, resKey)[propName]) - val)) {
+      if (Math.abs((fn ? fn(values.getByStr(key)[propName]) : values.getByStr(key)[propName]) - val) < Math.abs((fn ? fn(values.getByStr(resKey)[propName]) : values.getByStr(resKey)[propName]) - val)) {
         resKey = key;
       }
     }
