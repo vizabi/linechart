@@ -11,6 +11,7 @@ import {
   Dialogs,
   ButtonList,
   CapitalVizabiService,
+  Repeater,
   versionInfo
 } from "VizabiSharedComponents";
 import { VizabiLineChart } from "./component.js";
@@ -25,9 +26,13 @@ export default class LineChart extends BaseComponent {
     config.name = "linechart";
 
     config.subcomponents = [{
-      type: VizabiLineChart,
-      placeholder: ".vzb-linechart",
+      type: Repeater,
+      placeholder: ".vzb-repeater",
       model: marker,
+      options: {
+        ComponentClass: VizabiLineChart,
+        componentCssName: "vzb-linechart"
+      },
       name: "chart"
     },{
       type: TimeSlider,
@@ -67,7 +72,7 @@ export default class LineChart extends BaseComponent {
     }];
 
     config.template = `
-      <div class="vzb-linechart"></div>
+      <div class="vzb-repeater vzb-linechart"></div>
       <div class="vzb-animationcontrols">
         <div class="vzb-timeslider"></div>
         <div class="vzb-speedslider"></div>
@@ -137,6 +142,10 @@ LineChart.DEFAULT_CORE = {
       data: {
         modelType: "entityPropertyDataConfig",
       }
+    },
+    "repeat": {
+      modelType: "repeat",
+      allowEnc: ["y", "x"]
     },
     frame: {
       modelType: "frame"

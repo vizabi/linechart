@@ -226,11 +226,35 @@ class _VizabiLineChart extends BaseComponent {
       frame: this.model.encoding.frame,
       selected: this.model.encoding.selected,
       highlighted: this.model.encoding.highlighted,
-      x: this.model.encoding.x,
-      y: this.model.encoding.y,
+      x: this.model.encoding[this.state.alias.x || "x"],
+      y: this.model.encoding[this.state.alias.y || "y"],
       color: this.model.encoding.color,
-      label: this.model.encoding.label
+      label: this.model.encoding.label,
+      repeat: this.model.encoding.repeat
     };
+  }
+
+
+  get profileConstants() {
+    this.services.layout.size;
+
+    return this.services.layout.getProfileConstants(PROFILE_CONSTANTS, PROFILE_CONSTANTS_FOR_PROJECTOR);
+  }
+
+  get height(){
+    this.services.layout.size;
+
+    return this.element.node().clientHeight || 0;
+  }
+
+  get width(){
+    this.services.layout.size;
+
+    return this.element.node().clientWidth || 0;
+  }
+
+  checkLayout() {
+    if (!this.height || !this.width) return utils.warn("Chart _updateProfile() abort: container is too little or has display:none");
   }
 
   draw() {
@@ -241,7 +265,7 @@ class _VizabiLineChart extends BaseComponent {
     
     this.TIMEDIM = this.MDL.frame.data.concept;
         
-    if (this.updateLayoutProfile()) return; //return if exists with error
+    if (this.checkLayout()) return; //return if exists with error
     
     this.addReaction(this.drawForecastOverlay);
     this.addReaction(this.constructScales);
@@ -260,19 +284,21 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   constructScales() {
+    this.services.layout.size;
+    
     const zoomedX = this.MDL.x.scale.zoomed;
     const zoomedY = this.MDL.y.scale.zoomed;
-    this.xScale = this.MDL.x.scale.d3Scale.copy();
+    this.xScale = this.MDL.x.scale.d3Scale;
     this.xScale.domain(zoomedX);
 
-    this.yScale = this.MDL.y.scale.d3Scale.copy();
+    this.yScale = this.MDL.y.scale.d3Scale;
     this.yScale.domain(zoomedY);
 
     this.collisionResolver.scale(this.yScale);
   }
 
   constructColorScale() {
-    this.cScale = this.MDL.color.scale.d3Scale.copy();
+    this.cScale = this.MDL.color.scale.d3Scale;
   }
 
   drawForecastOverlay() {
@@ -343,7 +369,7 @@ class _VizabiLineChart extends BaseComponent {
       .classed("vzb-disabled", treemenu.state.ownReadiness !== Utils.STATUS.READY)
       .on("click", () => {
         treemenu
-          .encoding("y")
+          .encoding(this._alias("y"))
           .alignX("left")
           .alignY("top")
           .updateView()
@@ -354,7 +380,7 @@ class _VizabiLineChart extends BaseComponent {
       .classed("vzb-disabled", treemenu.state.ownReadiness !== Utils.STATUS.READY)
       .on("click", () => {
         treemenu
-          .encoding("x")
+          .encoding(this._alias("x"))
           .alignX("right")
           .alignY("bottom")
           .updateView()
@@ -542,7 +568,7 @@ class _VizabiLineChart extends BaseComponent {
           .text(d.name);
       }
 
-      const titleText = _this.addValueToLabel ? label : label + " " + _this.yAxis.tickFormat()((d.values[_this.stepIndex] || {}).y);
+      const titleText = _this.addValueToLabel ? label : label + " " + _this.yAxis.tickFormat()((d.values[_this.stepIndex] || {})[_this._alias("y")]);
       entity.select("title").text(titleText);
     });
 
@@ -586,11 +612,15 @@ class _VizabiLineChart extends BaseComponent {
         const entity = d3.select(this);
           
         const xy = d.values.slice(0, (_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex)
-          .map(point => [point.x, point.y])
+          .map(point => [point[_this._alias("x")], point[_this._alias("y")]])
           .filter(d => d[1] || d[1] === 0);
 
         // add last point
-        const currentPoint = _this.model.dataMap.getByStr(d[KEY]) || {};
+        let currentPoint = _this.model.dataMap.getByStr(d[KEY]) || {};
+        currentPoint = {
+          x: currentPoint[_this._alias("x")],
+          y: currentPoint[_this._alias("y")]
+        };
         if ((currentPoint.y || currentPoint.y === 0) && (currentPoint.x || currentPoint.x === 0)) {
           xy.push([currentPoint.x, currentPoint.y]);
         }
@@ -738,15 +768,6 @@ class _VizabiLineChart extends BaseComponent {
 
   }
 
-  updateLayoutProfile() {
-    this.services.layout.size;
-
-    this.profileConstants = this.services.layout.getProfileConstants(PROFILE_CONSTANTS, PROFILE_CONSTANTS_FOR_PROJECTOR);
-    this.height = this.element.node().clientHeight || 0;
-    this.width = this.element.node().clientWidth || 0;
-    if (!this.height || !this.width) return utils.warn("Chart _updateProfile() abort: container is too little or has display:none");
-  }
-
   /*
    * RESIZE:
    * Executed whenever the container is resized
@@ -756,6 +777,7 @@ class _VizabiLineChart extends BaseComponent {
     this.services.layout.size;
     this.MDL.x.scale.zoomed;
     this.MDL.y.scale.zoomed;
+    if (this.checkLayout()) return; //return if exists with error
 
     const {
       x,
@@ -808,7 +830,9 @@ class _VizabiLineChart extends BaseComponent {
 
     const magicMargin = 20;
     const marginRightAdjusted = Math.max(margin.right, longestLabelWidth + text_padding + magicMargin);
-    this.services.layout.setHGrid([this.width - marginRightAdjusted]);
+
+    if(this.MDL.repeat.ncolumns == 1)
+      this.services.layout.setHGrid([this.width - marginRightAdjusted]);
 
     //stage
     this.cropHeight = (this.height - margin.top - margin.bottom) || 0;
@@ -955,9 +979,9 @@ class _VizabiLineChart extends BaseComponent {
     //if (!utils.isDate(resolvedTime)) resolvedTime = this.time.parse(resolvedTime);
 
     const data = _this.model.getDataMapByFrameValue(resolvedTime);
-    const nearestKey = _this._getNearestKey(mousePos, data, "y", _this.yScale.bind(_this));
+    const nearestKey = _this._getNearestKey(mousePos, data, _this._alias("y"), _this.yScale.bind(_this));
     if (!data.hasByStr(nearestKey)) return;
-    const resolvedValue = data.getByStr(nearestKey)["y"];
+    const resolvedValue = data.getByStr(nearestKey)[_this._alias("y")];
     const hoveringNow = {[KEY]: nearestKey};
     if (!highlightedFilter.has(hoveringNow)) {
       runInAction(() => {
@@ -1103,8 +1127,8 @@ class _VizabiLineChart extends BaseComponent {
         return "none";
       }
     })
-      .sort(function(x, y){
-        return d3.ascending(x.sortValue, y.sortValue);
+      .sort(function(a, b){
+        return d3.ascending(a.sortValue, b.sortValue);
       });
 
   }
@@ -1156,6 +1180,10 @@ class _VizabiLineChart extends BaseComponent {
     return resKey;
   }
 
+  _alias(enc) {
+    return this.state.alias[enc] || enc;
+  }
+
 }
 
 _VizabiLineChart.DEFAULT_UI = {
@@ -1183,5 +1211,8 @@ _VizabiLineChart.DEFAULT_UI = {
 };
 
 export const VizabiLineChart = decorate(_VizabiLineChart, {
-  "MDL": computed
+  "MDL": computed,
+  "height": computed,
+  "width": computed,
+  "profileConstants": computed
 });
