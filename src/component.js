@@ -259,9 +259,6 @@ class _VizabiLineChart extends BaseComponent {
 
   draw() {
     this.localise = this.services.locale.auto();
-
-    this.yAxis.tickFormat(this.localise);
-    this.xAxis.tickFormat(this.localise);
     
     this.TIMEDIM = this.MDL.frame.data.concept;
         
@@ -555,23 +552,6 @@ class _VizabiLineChart extends BaseComponent {
       })
       .merge(entityLabels);
 
-    this.addValueToLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
-
-    entityLabels.each(function(d) {
-      const entity = d3.select(this);
-
-      const label = d.label = _this._getLabelText(d);
-      d.name = label.length < 13 ? label : label.substring(0, 10) + "...";//"…";
-
-      if (!_this.addValueToLabel) { 
-        entity.selectAll(".vzb-lc-labelname")
-          .text(d.name);
-      }
-
-      const titleText = _this.addValueToLabel ? label : label + " " + _this.yAxis.tickFormat()((d.values[_this.stepIndex] || {})[_this._alias("y")]);
-      entity.select("title").text(titleText);
-    });
-
     //line template
     this.line = d3.line()
     //see https://bl.ocks.org/mbostock/4342190
@@ -592,8 +572,10 @@ class _VizabiLineChart extends BaseComponent {
     this.MDL.x.scale.zoomed;
     this.MDL.y.scale.zoomed;
 
-    if ([...this.xScale.domain(), ...this.yScale.domain()].some(s => s==null || isNaN(s))) 
-      return utils.warn(`Line chart redrawDataPoints() short circuit because scale domain looks bad`, this.xScale.domain(), this.yScale.domain());
+    const checkX = this.xScale.domain();
+    const checkY = this.yScale.domain();
+    if (!checkX.length || !checkY.length || [...checkX, ...checkY].some(s => s == null || isNaN(s)))
+      return utils.warn(`Line chart redrawDataPoints() short circuit because scale domain looks bad`, checkX, checkY);
 
     const _this = this;
     const KEY = this.KEY;
@@ -692,9 +674,15 @@ class _VizabiLineChart extends BaseComponent {
 
       });
 
+    const addValueToLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
+
     entityLabels
       .each(function(d) {
         const entity = d3.select(this);
+
+        const labelText = _this._getLabelText(d);
+        const label = labelText.length < 13 ? labelText : labelText.substring(0, 10) + "...";//"…";
+
         if (_this.cached[d[KEY]]) {
           d.valueX = _this.xScale(_this.cached[d[KEY]]["valueX"]);
           d.valueY = _this.yScale(_this.cached[d[KEY]]["valueY"]);
@@ -711,12 +699,16 @@ class _VizabiLineChart extends BaseComponent {
             .ease(d3.easeLinear)
             .attr("cy", d.valueY + 1);
 
-          if (_this.addValueToLabel) {
-            const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
+          const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
+          if (addValueToLabel) {
 
             entity.selectAll(".vzb-lc-labelname")
-              .text(d.name + " " + value);
+              .text(label + " " + value);
+          } else {
+            entity.selectAll(".vzb-lc-labelname")
+              .text(label);
           }
+          entity.select("title").text(label + " " + value);
 
           entity.select(".vzb-lc-label")
             .transition()
@@ -727,8 +719,9 @@ class _VizabiLineChart extends BaseComponent {
         } else {
           entity
             .classed("vzb-hidden", true);
-        }
+        }   
       });
+
 
     if (this._isFrameOnXaxis()){
       verticalNow
@@ -866,7 +859,8 @@ class _VizabiLineChart extends BaseComponent {
         scaleType: y.scale.type,
         toolMargin: margin,
         limitMaxTickNumber: 6,
-        viewportLength: this.cropHeight
+        viewportLength: this.cropHeight,
+        formatter: this.localise
       });
 
     this.xAxis.scale(this.xScale)
@@ -879,6 +873,7 @@ class _VizabiLineChart extends BaseComponent {
         limitMaxTickNumber: limitMaxTickNumberX,
         toolMargin: margin,
         bump: text_padding * 2,
+        formatter: this.localise,
         //showOuter: true
       });
 
