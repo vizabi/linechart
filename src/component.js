@@ -522,10 +522,10 @@ class _VizabiLineChart extends BaseComponent {
     entityLabels.exit().remove();
     this.DOM.entityLabels = entityLabels = entityLabels.enter().append("g")
       .attr("class", "vzb-lc-entity")
-      .on("mouseover", d => {
+      .on("mouseover", (event, d) => {
         _this.MDL.highlighted.data.filter.set(d, JSON.stringify(d.values[d.values.length - 1]));
       })
-      .on("mouseout", d => {
+      .on("mouseout", (event, d) => {
         _this.MDL.highlighted.data.filter.delete(d);
       })
       .each(function() {
@@ -952,7 +952,7 @@ class _VizabiLineChart extends BaseComponent {
     });
   }
 
-  _entityMousemove() {
+  _entityMousemove(event) {
     const _this = this;
     const KEY = _this.KEY;
     const {
@@ -961,7 +961,7 @@ class _VizabiLineChart extends BaseComponent {
     } = this.MDL;
 
 
-    const mouse = d3.mouse(_this.element.node()).map(d => parseInt(d));
+    const mouse = d3.pointer(event);
 
     let resolvedTime = _this.xScale.invert(mouse[0] - _this.profileConstants.margin.left);
     if (_this.time - resolvedTime < 0) {
@@ -1040,9 +1040,9 @@ class _VizabiLineChart extends BaseComponent {
     clearTimeout(_this.unhoverTimeout);
   }
 
-  _entityMouseout() {
+  _entityMouseout(event) {
     const _this = this;    
-    if (d3.event.relatedTarget && d3.select(d3.event.relatedTarget).classed("vzb-tooltip")) return;
+    if (event.relatedTarget && d3.select(event.relatedTarget).classed("vzb-tooltip")) return;
 
     // hide and show things like it was before hovering
     _this.unhoverTimeout = setTimeout(() => {
