@@ -19,9 +19,10 @@ export default class LineChart extends BaseComponent {
 
   constructor(config){
 
-    config.Vizabi.utils.applyDefaults(config.model.markers.line.config, LineChart.DEFAULT_CORE);  
+    const markerName = config.options.markerName || "line";
+    config.Vizabi.utils.applyDefaults(config.model.markers[markerName].config, LineChart.DEFAULT_CORE(markerName));  
 
-    const marker = config.model.markers.line;
+    const marker = config.model.markers[markerName];
 
     config.name = "linechart";
 
@@ -100,7 +101,7 @@ LineChart.DEFAULT_UI = {
   chart: {
   },
 };
-LineChart.DEFAULT_CORE = {
+LineChart.DEFAULT_CORE = (markerName) => ({
   requiredEncodings: ["x", "y"],
   encoding: {
     "selected": {
@@ -117,7 +118,7 @@ LineChart.DEFAULT_CORE = {
     "x": {
       data: {
         concept: { 
-          ref: "markers.line.encoding.frame.data.concept"
+          ref: `markers.${markerName}.encoding.frame.data.concept`
         }
       },
       scale: {
@@ -151,6 +152,6 @@ LineChart.DEFAULT_CORE = {
       modelType: "frame"
     }
   }
-};
+});
 
 LineChart.versionInfo = { version: __VERSION, build: __BUILD, package: __PACKAGE_JSON_FIELDS, sharedComponents: versionInfo};
