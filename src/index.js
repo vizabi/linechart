@@ -127,6 +127,8 @@ LineChart.DEFAULT_CORE = (markerName) => ({
     },
     "color": {
       data: {
+        concept: { filter: { concept_type: { $in: ["entity_set", "entity_domain"]} } },
+        
         allow: {
           space: {
             filter: {
