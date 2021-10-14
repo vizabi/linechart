@@ -4,6 +4,8 @@ import {
   TimeSlider,
   DataWarning,
   DataNotes,
+  ErrorMessage,
+  SpaceConfig,
   LocaleService,
   LayoutService,
   TreeMenu,
@@ -70,6 +72,17 @@ export default class LineChart extends BaseComponent {
       placeholder: ".vzb-buttonlist",
       model: marker,
       name: "buttons"
+    },{
+      type: SpaceConfig,
+      placeholder: ".vzb-spaceconfig",
+      options: {button: ".vzb-spaceconfig-button"},
+      model: marker,
+      name: "space-config"
+    },{
+      type: ErrorMessage,
+      placeholder: ".vzb-errormessage",
+      model: marker,
+      name: "error-message"
     }];
 
     config.template = `
@@ -83,8 +96,10 @@ export default class LineChart extends BaseComponent {
         <div class="vzb-buttonlist"></div>
       </div>
       <div class="vzb-treemenu"></div>
-      <div class="vzb-datanotes"></div>
       <div class="vzb-datawarning"></div>
+      <div class="vzb-spaceconfig"></div>
+      <div class="vzb-datanotes"></div>
+      <div class="vzb-errormessage"></div>
     `;
 
     config.services = {
