@@ -33,8 +33,8 @@ export default class LineChart extends BaseComponent {
       placeholder: ".vzb-repeater",
       model: marker,
       options: {
-        ComponentClass: VizabiLineChart,
-        componentCssName: "vzb-linechart"
+        repeatedComponent: VizabiLineChart,
+        repeatedComponentCssClass: "vzb-linechart"
       },
       name: "chart"
     },{
@@ -86,7 +86,7 @@ export default class LineChart extends BaseComponent {
     }];
 
     config.template = `
-      <div class="vzb-repeater vzb-linechart"></div>
+      <div class="vzb-repeater"></div>
       <div class="vzb-animationcontrols">
         <div class="vzb-timeslider"></div>
         <div class="vzb-speedslider"></div>
