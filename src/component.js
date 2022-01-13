@@ -961,7 +961,7 @@ class _VizabiLineChart extends BaseComponent {
     } = this.MDL;
 
 
-    const mouse = d3.pointer(event);
+    const mouse = d3.pointer(event, _this.element.node());
 
     let resolvedTime = _this.xScale.invert(mouse[0] - _this.profileConstants.margin.left);
     if (_this.time - resolvedTime < 0) {
@@ -1003,8 +1003,8 @@ class _VizabiLineChart extends BaseComponent {
       //position tooltip
       tooltip
       //.style("right", (_this.cropWidth - scaledTime + _this.marginRightAdjusted ) + "px")
-        .style("left", (scaledTime + _this.margin.left) + "px")
-        .style("bottom", (_this.cropHeight - scaledValue + _this.margin.bottom) + "px")
+        .style("left", (scaledTime + _this.profileConstants.margin.left) + "px")
+        .style("bottom", (_this.cropHeight - scaledValue + _this.profileConstants.margin.bottom) + "px")
         .text(_this.yAxis.tickFormat()(resolvedValue))
         .classed("vzb-hidden", false);
     }
