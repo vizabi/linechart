@@ -1,6 +1,6 @@
 {
   "name": "@vizabi/linechart",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "Vizabi line chart",
   "scripts": {
     "prepublishOnly": "npm run build",
