@@ -21,7 +21,7 @@ export default class LineChart extends BaseComponent {
 
   constructor(config){
 
-    const markerName = config.options.markerName || "line";
+    const markerName = config.options?.markerNames?.line || "line";
     config.Vizabi.utils.applyDefaults(config.model.markers[markerName].config, LineChart.DEFAULT_CORE(markerName));  
 
     const marker = config.model.markers[markerName];
