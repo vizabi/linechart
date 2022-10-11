@@ -593,7 +593,7 @@ class _VizabiLineChart extends BaseComponent {
       .each(function(d) {
         const entity = d3.select(this);
           
-        const xy = d.values.slice(0, (_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex)
+        const xy = d.values.slice(0, Math.ceil((_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex))
           .map(point => [point[_this._alias("x")], point[_this._alias("y")]])
           .filter(d => d[1] || d[1] === 0);
 
