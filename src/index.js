@@ -15,7 +15,7 @@ import {
   CapitalVizabiService,
   Repeater,
   versionInfo
-} from "VizabiSharedComponents";
+} from "@vizabi/shared-components";
 import { VizabiLineChart } from "./component.js";
 export default class LineChart extends BaseComponent {
 
@@ -102,6 +102,8 @@ export default class LineChart extends BaseComponent {
       <div class="vzb-errormessage"></div>
     `;
 
+    config.locale.Vizabi = config.Vizabi;
+    config.layout.Vizabi = config.Vizabi;
     config.services = {
       Vizabi: new CapitalVizabiService({Vizabi: config.Vizabi}),
       locale: new LocaleService(config.locale),

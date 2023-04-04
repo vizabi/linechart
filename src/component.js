@@ -5,7 +5,8 @@ import {
   Utils,
   collisionResolver,
   axisSmart
-} from "VizabiSharedComponents";
+} from "@vizabi/shared-components";
+import * as d3 from "d3";
 import { runInAction, decorate, computed } from "mobx";
 
 const {ICON_QUESTION} = Icons;
