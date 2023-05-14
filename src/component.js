@@ -348,16 +348,10 @@ class _VizabiLineChart extends BaseComponent {
 
   updateUIStrings() {
 
-    this.strings = {
+    const strings = {
       title: {
         Y: Utils.getConceptName(this.MDL.y, this.localise),
-        X: Utils.getConceptName(this.MDL.x, this.localise),
-        C: Utils.getConceptName(this.MDL.color, this.localise)
-      },
-      unit: {
-        Y: Utils.getConceptUnit(this.MDL.y),
-        X: Utils.getConceptUnit(this.MDL.x),
-        C: Utils.getConceptUnit(this.MDL.color)
+        X: Utils.getConceptName(this.MDL.x, this.localise)
       }
     };
 
@@ -372,7 +366,8 @@ class _VizabiLineChart extends BaseComponent {
           .alignY("top")
           .updateView()
           .toggle();
-      });
+      })
+      .select("text").text(strings.title.Y);
 
     this.DOM.xTitle
       .classed("vzb-disabled", treemenu.state.ownReadiness !== Utils.STATUS.READY)
@@ -383,11 +378,11 @@ class _VizabiLineChart extends BaseComponent {
           .alignY("bottom")
           .updateView()
           .toggle();
-      });
+      })
+      .select("text").text(strings.title.X);
 
     const conceptPropsY = this.MDL.y.data.conceptProps;
-    this.DOM.yInfo
-      .style("opacity", Number(Boolean(conceptPropsY.description || conceptPropsY.sourceLink)));
+    this.DOM.yInfo.classed("vzb-hidden", !conceptPropsY.description && !conceptPropsY.sourceLink);
   }
 
   updateTime() {
@@ -897,18 +892,15 @@ class _VizabiLineChart extends BaseComponent {
     yAxisEl.call(this.yAxis);
     xAxisEl.call(this.xAxis);
 
-    const xTitleText = xTitle.select("text").text(this.strings.title.X + this.strings.unit.X);
-
+    const xTitleBBox = this.DOM.xTitle.select("text").node().getBBox();
+    const xTitleDoesntFit = xTitleBBox.width + text_padding + yAxisTitleBottomMargin > marginRightAdjusted; 
     xTitle
       .style("font-size", infoElHeight + "px")
+      .style("text-anchor", xTitleDoesntFit ? "end" : "start")
       .attr("transform", "translate(" +
         (this.cropWidth + text_padding + yAxisTitleBottomMargin) + "," +
-        (this.cropHeight + xTitleText.node().getBBox().height  * 0.72) + ")");
+        (this.cropHeight + xTitleBBox.height * (xTitleDoesntFit ? -0.3 : 0.72)) + ")");
 
-    if (xTitleText.node().getBBox().width > this.cropWidth - 100) xTitleText.text(this.strings.title.X);
-
-    const yTitleText = yTitle.select("text").text(this.strings.title.Y + this.strings.unit.Y);
-    if (yTitleText.node().getBBox().width > this.cropWidth) yTitleText.text(this.strings.title.Y);
 
     yTitle
       .style("font-size", infoElHeight + "px")
