@@ -130,15 +130,15 @@ class _VizabiLineChart extends BaseComponent {
                 <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
               </filter-->
 
+              <rect class="vzb-lc-forecastoverlay vzb-hidden" fill="url(#vzb-lc-pattern-lines-${config.id})" pointer-events='none'></rect>
           </g>
-          <rect class="vzb-lc-forecastoverlay vzb-hidden" x="0" y="0" width="100%" height="100%" fill="url(#vzb-lc-pattern-lines-${config.id})" pointer-events='none'></rect>
           <g class="vzb-datawarning-button vzb-noexport"></g>
       </svg>
       <div class="vzb-tooltip vzb-hidden"></div>
       <svg>
         <defs>
             <pattern class="vzb-noexport" id="vzb-lc-pattern-lines-${config.id}" x="0" y="0" patternUnits="userSpaceOnUse" width="50" height="50" viewBox="0 0 10 10"> 
-                <path d='M-1,1 l2,-2M0,10 l10,-10M9,11 l2,-2' stroke='black' stroke-width='3' opacity='0.08'/>
+                <path d='M-1,1 l2,-2M0,10 l10,-10M9,11 l2,-2' stroke='red' stroke-width='3' opacity='0.08'/>
             </pattern> 
         </defs>
       </svg>
@@ -265,15 +265,15 @@ class _VizabiLineChart extends BaseComponent {
         
     if (this.checkLayout()) return; //return if exists with error
     
-    this.addReaction(this.drawForecastOverlay);
     this.addReaction(this.constructScales);
     this.addReaction(this.constructColorScale);
-   
+    
     this.addReaction(this.updateTime);
     this.addReaction(this.updateUIStrings);
     this.addReaction(this.updateShow);
     this.addReaction(this.updateColors);
     this.addReaction(this.updateSize);
+    this.addReaction(this.drawForecastOverlay);
     
     this.addReaction(this.redrawDataPoints);
     this.addReaction(this.highlightLines);
@@ -300,12 +300,28 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   drawForecastOverlay() {
+    this.services.layout.size;
+    this.MDL.x.scale.zoomed;
+    this.MDL.y.scale.zoomed;
+    if (this.checkLayout()) return; //return if exists with error
+
     this.DOM.forecastOverlay.classed("vzb-hidden", 
       !this.ui.showForecast || 
       !this.ui.showForecastOverlay || 
       !this.ui.endBeforeForecast || 
         (this.MDL.frame.value <= this.MDL.frame.parseValue(this.ui.endBeforeForecast))
     );
+
+    const x = this.MDL.x.scale.isSameAsFrameEncScale 
+      ? this.xScale(this.MDL.frame.parseValue(this.ui.endBeforeForecast))
+      : this.xScale.range()[0];
+    const w = this.xScale.range()[1] - x;
+    
+    this.DOM.forecastOverlay
+      .attr("x",  x) 
+      .attr("width", w)
+      .attr("y", this.yScale.range()[1])
+      .attr("height", this.yScale.range()[0]);
   }
 
   _initInfoElements() {
