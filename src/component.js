@@ -192,11 +192,6 @@ class _VizabiLineChart extends BaseComponent {
     this.xScale = null;
     this.yScale = null;
 
-    this.rangeXRatio = 1;
-    this.rangeXShift = 0;
-
-    this.rangeYRatio = 1;
-    this.rangeYShift = 0;
     this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
     this.yAxis = axisSmart("left");
@@ -848,8 +843,7 @@ class _VizabiLineChart extends BaseComponent {
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     this.yScale.range([this.cropHeight - lollipopRadius, lollipopRadius]);
-    this.xScale.range([this.rangeXShift, this.cropWidth * this.rangeXRatio + this.rangeXShift]);
-
+    this.xScale.range([0, this.cropWidth]);
 
     this.yAxis.scale(this.yScale)
       .tickSizeInner(-this.cropWidth)
