@@ -14,7 +14,7 @@ const PROFILE_CONSTANTS = {
   SMALL: {
     margin: {
       top: 30,
-      right: 20,
+      right: 100,
       left: 40,
       bottom: 20
     },
@@ -28,7 +28,7 @@ const PROFILE_CONSTANTS = {
   MEDIUM: {
     margin: {
       top: 40,
-      right: 60,
+      right: 125,
       left: 60,
       bottom: 25
     },
@@ -42,7 +42,7 @@ const PROFILE_CONSTANTS = {
   LARGE: {
     margin: {
       top: 50,
-      right: 60,
+      right: 150,
       left: 75,
       bottom: 30
     },
@@ -61,7 +61,7 @@ const PROFILE_CONSTANTS_FOR_PROJECTOR = {
       top: 70,
       bottom: 40,
       left: 70,
-      right: 60
+      right: 180
     },
     yAxisTitleBottomMargin: 20,
     xAxisTitleBottomMargin: 20,
@@ -73,7 +73,7 @@ const PROFILE_CONSTANTS_FOR_PROJECTOR = {
       top: 70,
       bottom: 50,
       left: 70,
-      right: 60
+      right: 220
     },
     yAxisTitleBottomMargin: 20,
     xAxisTitleBottomMargin: 20,
@@ -693,7 +693,8 @@ class _VizabiLineChart extends BaseComponent {
         const entity = d3.select(this);
 
         const labelText = _this._getLabelText(d);
-        const label = labelText.length < 13 ? labelText : labelText.substring(0, 10) + "...";//"…";
+        const maxSymbolCount = addValueToLabel ? 7 : 13;
+        const label = labelText.length <= maxSymbolCount ? labelText : labelText.substring(0, maxSymbolCount).trim() + "…";//"…";
 
         if (_this.cached[d[KEY]]) {
           d.valueX = _this.xScale(_this.cached[d[KEY]]["valueX"]);
@@ -818,30 +819,18 @@ class _VizabiLineChart extends BaseComponent {
 
     const isRTL = this.services.locale.isRTL();
 
-
-    //adjust right this.margin according to biggest label
-
-    let longestLabelWidth = 0;
-
-    entityLabels.selectAll(".vzb-lc-labelname")
-      .attr("dx", text_padding)
-      .each(function() {
-        const width = this.getComputedTextLength();
-        if (width > longestLabelWidth) longestLabelWidth = width;
-      });
-
     entityLabels.selectAll(".vzb-lc-circle")
       .attr("r", this.shadowWidth ? lollipopRadius : lollipopRadius * 0.8);
 
-    const magicMargin = 20;
-    const marginRightAdjusted = Math.max(margin.right, longestLabelWidth + text_padding + magicMargin);
+    entityLabels.selectAll(".vzb-lc-labelname")
+      .attr("dx", this.shadowWidth ? lollipopRadius * 2 : lollipopRadius * 0.8 * 2);
 
     if(this.MDL.repeat.ncolumns == 1)
-      this.services.layout.setHGrid([this.width - marginRightAdjusted]);
+      this.services.layout.setHGrid([this.width - margin.right]);
 
     //stage
     this.cropHeight = (this.height - margin.top - margin.bottom) || 0;
-    this.cropWidth = (this.width - margin.left - marginRightAdjusted) || 0;
+    this.cropWidth = (this.width - margin.left -  margin.right) || 0;
 
     //if (this.cropHeight <= 0 || this.cropWidth <= 0) return utils.warn("Line chart updateSize() abort: vizabi container is too little or has display:none");
     
@@ -850,7 +839,7 @@ class _VizabiLineChart extends BaseComponent {
       .attr("height", Math.max(0, this.cropHeight));
 
     labelsContainerCrop
-      .attr("width", this.cropWidth + marginRightAdjusted)
+      .attr("width", this.cropWidth + margin.right)
       .attr("height", Math.max(0, this.cropHeight));
 
     this.collisionResolver.height(this.cropHeight);
@@ -909,7 +898,7 @@ class _VizabiLineChart extends BaseComponent {
     xAxisEl.call(this.xAxis);
 
     const xTitleBBox = this.DOM.xTitle.select("text").node().getBBox();
-    const xTitleDoesntFit = xTitleBBox.width + text_padding + yAxisTitleBottomMargin > marginRightAdjusted; 
+    const xTitleDoesntFit = xTitleBBox.width + text_padding + yAxisTitleBottomMargin > margin.right; 
     xTitle
       .style("font-size", infoElHeight + "px")
       .style("text-anchor", xTitleDoesntFit ? "end" : "start")
@@ -1011,7 +1000,6 @@ class _VizabiLineChart extends BaseComponent {
     if (_this.ui.whenHovering.showTooltip) {
       //position tooltip
       tooltip
-      //.style("right", (_this.cropWidth - scaledTime + _this.marginRightAdjusted ) + "px")
         .style("left", (scaledTime + _this.profileConstants.margin.left) + "px")
         .style("bottom", (_this.cropHeight - scaledValue + _this.profileConstants.margin.bottom) + "px")
         .text(_this.yAxis.tickFormat()(resolvedValue))
