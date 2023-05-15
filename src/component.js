@@ -7,7 +7,7 @@ import {
   axisSmart
 } from "@vizabi/shared-components";
 import * as d3 from "d3";
-import { runInAction, decorate, computed } from "mobx";
+import { runInAction, decorate, computed, observable } from "mobx";
 
 const {ICON_QUESTION} = Icons;
 const PROFILE_CONSTANTS = {
@@ -172,8 +172,6 @@ class _VizabiLineChart extends BaseComponent {
     this.DOM.xAxisEl = this.DOM.xAxisElContainer.select("g");
     this.DOM.yAxisEl = this.DOM.yAxisElContainer.select("g");
     this.DOM.verticalNow = this.DOM.labelsContainer.select(".vzb-lc-vertical-now");
-    this.DOM.entityLabels = this.DOM.labelsContainer.selectAll(".vzb-lc-entity");
-    this.DOM.entityLines = this.DOM.linesContainer.selectAll(".vzb-lc-entity");
   
     this.totalLength_1 = {};
 
@@ -189,8 +187,13 @@ class _VizabiLineChart extends BaseComponent {
 
     this._initInfoElements();
 
-    this.xScale = null;
-    this.yScale = null;
+    //line path generator
+    this.line = d3.line()
+      //see https://bl.ocks.org/mbostock/4342190
+      //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
+      .curve(d3[(this._isFrameOnXaxis() && this.ui.curve) ? this.ui.curve : "curveLinear"])
+      .x(d => this.xScale(d[0]))
+      .y(d => this.yScale(d[1]));
 
     this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
@@ -260,12 +263,9 @@ class _VizabiLineChart extends BaseComponent {
         
     if (this.checkLayout()) return; //return if exists with error
     
-    this.addReaction(this.constructScales);
-    this.addReaction(this.constructColorScale);
-    
     this.addReaction(this.updateTime);
     this.addReaction(this.updateUIStrings);
-    this.addReaction(this.updateShow);
+    this.addReaction(this.addOrRemoveLinesAndLabels);
     this.addReaction(this.updateColors);
     this.addReaction(this.updateSize);
     this.addReaction(this.drawForecastOverlay);
@@ -274,24 +274,6 @@ class _VizabiLineChart extends BaseComponent {
     this.addReaction(this.highlightLines);
     this.addReaction(this.updateNoDataMessage);
   
-  }
-
-  constructScales() {
-    this.services.layout.size;
-    
-    const zoomedX = this.MDL.x.scale.zoomed;
-    const zoomedY = this.MDL.y.scale.zoomed;
-    this.xScale = this.MDL.x.scale.d3Scale;
-    this.xScale.domain(zoomedX);
-
-    this.yScale = this.MDL.y.scale.d3Scale;
-    this.yScale.domain(zoomedY);
-
-    this.collisionResolver.scale(this.yScale);
-  }
-
-  constructColorScale() {
-    this.cScale = this.MDL.color.scale.d3Scale;
   }
 
   drawForecastOverlay() {
@@ -407,37 +389,28 @@ class _VizabiLineChart extends BaseComponent {
 
   updateColors() {
     const _this = this;
-    const { color } = this.MDL; 
-    const {
-      entityLabels,
-      entityLines
-    } = this.DOM;
-
+    const { color } = this.MDL;     
     color.scale.d3Scale;
 
-    entityLabels.each(function(d) {
-      const entity = d3.select(this);
+    this.labels.each(function(d) {
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
 
-      entity.select("circle").style("fill", color);
-      entity.select(".vzb-lc-labelfill")
-        .style("fill", colorShadow);
-      entity.select(".vzb-lc-label-value")
-        .style("fill", colorShadow);
+      this.circle.style("fill", color);
+      this.label.style("fill", colorShadow);
     });
 
-    entityLines.each(function(d) {
-      const entity = d3.select(this);
+    this.lines.each(function(d) {
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
       
-      entity.select(".vzb-lc-line").style("stroke", color);
-      entity.select(".vzb-lc-line-shadow").style("stroke", colorShadow);
+      if (this.path1) this.path1.style("stroke", colorShadow);
+      this.path2.style("stroke", _this.shadowWidth ? color : colorShadow);
     });
   }
 
   _getColorsByValue(colorValue) {
+    const cScale = this.MDL.color.scale.d3Scale;
     return { 
-      color: colorValue != null ? this.cScale(colorValue) : this.COLOR_WHITEISH,
+      color: colorValue != null ? cScale(colorValue) : this.COLOR_WHITEISH,
       colorShadow: colorValue != null ? this.MDL.color.scale.palette.getColorShade({
         colorID: colorValue,
         shadeID: "shade"
@@ -481,91 +454,69 @@ class _VizabiLineChart extends BaseComponent {
    * UPDATE SHOW:
    * Ideally should only update when show parameters change or data changes
    */
-  updateShow() {
+  addOrRemoveLinesAndLabels() {
     this.MDL.x.scale.zoomed;
 
     const _this = this;
     const KEY = this.KEY;
-    const {
-      labelsContainer,
-    } = this.DOM;
-    let {
-      entityLines,
-      entityLabels
-    } = this.DOM;
     
     this.cached = {};
-
+    
     this.data = this._processFramesData();
-    entityLines = entityLines.data(this.data, d => d[KEY]);
-    entityLines.exit().remove();
 
     this.lineWidth = this.lineWidthScale(this.data.length);
-    if (this.lineWidth >= 2) {
-      this.shadowWidth = this.lineWidth * 1.3;
-    } else {
-      this.shadowWidth = null;
-    }
+    this.shadowWidth = this.lineWidth >= 2 ? this.lineWidth * 1.3 : null;
+    this.DOM.labelsContainer.classed("small", !this.shadowWidth);
 
-    labelsContainer.classed("small", !this.shadowWidth);
-    this.DOM.entityLines = entityLines = entityLines
-      .enter().append("g")
-      .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
-      .each(function() {
-        const entity = d3.select(this);
-        entity.append("path")
-          .attr("class", "vzb-lc-line");
-      })
-      .merge(entityLines);
+    runInAction(() => {
 
-    this.DOM.entityLines.selectAll(".vzb-lc-line-shadow")
-      .remove();
-    if (_this.shadowWidth) {
-      this.DOM.entityLines.insert("path", ":first-child")
-        .attr("class", "vzb-lc-line-shadow");
-    }
-      
-    entityLabels = entityLabels.data(this.data, d => d[KEY]);
-    entityLabels.exit().remove();
-    this.DOM.entityLabels = entityLabels = entityLabels.enter().append("g")
-      .attr("class", "vzb-lc-entity")
-      .on("mouseover", (event, d) => {
-        _this.MDL.highlighted.data.filter.set(d, JSON.stringify(d.values[d.values.length - 1]));
-      })
-      .on("mouseout", (event, d) => {
-        _this.MDL.highlighted.data.filter.delete(d);
-      })
-      .each(function() {
-        const entity = d3.select(this);
+      if (this.lines) this.lines.remove();
+      this.lines = this.DOM.linesContainer.selectAll(".vzb-lc-entity")
+        .data(this.data, d => d[KEY])
+        .enter().append("g")
+        .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
+        .each(function () {
+          const entity = d3.select(this);
+          if(_this.shadowWidth) 
+            this.path1 = entity.append("path").attr("class", "vzb-lc-line-shadow");
+          this.path2 = entity.append("path").attr("class", "vzb-lc-line");
+        });
+        
 
-        entity.append("circle")
-          .attr("class", "vzb-lc-circle")
-          .attr("cx", 0);
-        entity.append("title");
+      if (this.labels) this.labels.remove();
+      this.labels = this.DOM.labelsContainer.selectAll(".vzb-lc-entity")
+        .data(this.data, d => d[KEY])
+        .enter().append("g")
+        .attr("class", "vzb-lc-entity")
+        .on("mouseover", (event, d) => {
+          _this.MDL.highlighted.data.filter.set(d, JSON.stringify(d.values[d.values.length - 1]));
+        })
+        .on("mouseout", (event, d) => {
+          _this.MDL.highlighted.data.filter.delete(d);
+        })
+        .each(function() {
+          const entity = d3.select(this);
 
-        const labelGroup = entity.append("g").attr("class", "vzb-lc-label");
+          this.circle = entity.append("circle")
+            .attr("class", "vzb-lc-circle")
+            .attr("cx", 0);
+          entity.append("title");
 
-        labelGroup.append("text")
-          .attr("class", "vzb-lc-labelname vzb-lc-labelstroke")
-          .attr("dy", ".35em");
+          const labelGroup = this.label = entity.append("g").attr("class", "vzb-lc-label");
 
-        labelGroup.append("text")
-          .attr("class", "vzb-lc-labelname vzb-lc-labelfill")
-          .attr("dy", ".35em");
+          labelGroup.append("text")
+            .attr("class", "vzb-lc-labelname vzb-lc-labelstroke")
+            .attr("dy", ".35em");
 
-        labelGroup.append("text")
-          .attr("class", "vzb-lc-label-value")
-          .attr("dy", "1.6em");
-      })
-      .merge(entityLabels);
+          labelGroup.append("text")
+            .attr("class", "vzb-lc-labelname vzb-lc-labelfill")
+            .attr("dy", ".35em");
 
-    //line template
-    this.line = d3.line()
-    //see https://bl.ocks.org/mbostock/4342190
-    //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
-      .curve(d3[(this._isFrameOnXaxis() && this.ui.curve) ? this.ui.curve : "curveLinear"])
-      .x(d => this.xScale(d[0]))
-      .y(d => this.yScale(d[1]));
+          labelGroup.append("text")
+            .attr("class", "vzb-lc-label-value")
+            .attr("dy", "1.6em");
+        });
+    });
   }
 
   /*
@@ -587,8 +538,6 @@ class _VizabiLineChart extends BaseComponent {
     const _this = this;
     const KEY = this.KEY;
     const {
-      entityLines,
-      entityLabels,
       verticalNow,
       xAxisEl
     } = this.DOM;
@@ -596,9 +545,8 @@ class _VizabiLineChart extends BaseComponent {
       frame
     } = this.MDL;
 
-    entityLines
+    this.lines
       .each(function(d) {
-        const entity = d3.select(this);
           
         const xy = d.values.slice(0, Math.ceil((_this.stepIndex - d.shiftIndex) <= 0 ? 0 : _this.stepIndex - d.shiftIndex))
           .map(point => [point[_this._alias("x")], point[_this._alias("y")]])
@@ -623,30 +571,24 @@ class _VizabiLineChart extends BaseComponent {
           delete _this.cached[d[KEY]];
         }
 
-        // the following fixes the ugly line butts sticking out of the axis line
-        //if(x[0]!=null && x[1]!=null) xy.splice(1, 0, [(+x[0]*0.99+x[1]*0.01), y[0]]);
-        const path2 = entity.select(".vzb-lc-line");
-
-        if (frame.playing && _this.totalLength_1[d[KEY]] === null) {
-          _this.totalLength_1[d[KEY]] = path2.node().getTotalLength();
-        }
-        const line = _this.line(xy) || "";
-
-        const path1 = entity.select(".vzb-lc-line-shadow")
-
+        if (this.path1) this.path1
           .style("stroke-width", _this.shadowWidth + "px")
           .attr("transform", "translate(0, " + (_this.shadowWidth - _this.lineWidth) + ")")
-          .attr("d", line);
-        path2
-        //.style("filter", "none")
+          .attr("d", _this.line(xy) || "");
+
+        this.path2
           .style("stroke-width", _this.lineWidth + "px")
-          .attr("d", line);
+          .attr("d", _this.line(xy) || "");
+
+        if (frame.playing && _this.totalLength_1[d[KEY]] === null) {
+          _this.totalLength_1[d[KEY]] = this.path2.node().getTotalLength();
+        }
 
         // this section ensures the smooth transition while playing and not needed otherwise
         if (frame.playing) {
-          const totalLength = path2.node().getTotalLength();
+          const totalLength = this.path2.node().getTotalLength();
 
-          path1
+          if (this.path1) this.path1
             .interrupt()
             .attr("stroke-dasharray", totalLength)
             .attr("stroke-dashoffset", totalLength - _this.totalLength_1[d[KEY]])
@@ -655,7 +597,7 @@ class _VizabiLineChart extends BaseComponent {
             .duration(_this.duration)
             .ease(d3.easeLinear)
             .attr("stroke-dashoffset", 0);
-          path2
+          this.path2
             .interrupt()
             .attr("stroke-dasharray", totalLength)
             .attr("stroke-dashoffset", totalLength - _this.totalLength_1[d[KEY]])
@@ -670,11 +612,11 @@ class _VizabiLineChart extends BaseComponent {
           //reset saved line lengths
           _this.totalLength_1[d[KEY]] = null;
 
-          path1
+          if (this.path1) this.path1
             .attr("stroke-dasharray", "none")
             .attr("stroke-dashoffset", "none");
 
-          path2
+          this.path2
             .attr("stroke-dasharray", "none")
             .attr("stroke-dashoffset", "none");
         }
@@ -683,7 +625,7 @@ class _VizabiLineChart extends BaseComponent {
 
     const addValueToLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
 
-    entityLabels
+    this.labels
       .each(function(d) {
         const entity = d3.select(this);
 
@@ -764,9 +706,32 @@ class _VizabiLineChart extends BaseComponent {
     // then order a new collision resolving
     clearTimeout(this.collisionTimeout);
     this.collisionTimeout = setTimeout(() => {
-      entityLabels.call(this.collisionResolver.time(this.xScale(this.time)));
+      this.labels.call(this.collisionResolver.time(this.xScale(this.time)));
     }, this.duration * 1.5);
 
+  }
+
+
+  get xScale() {
+    this.services.layout.size; //watch
+    
+    const {margin} = this.profileConstants;
+    const cropWidth = (this.width - margin.left -  margin.right) || 0;
+    let zoomed = this.MDL.x.scale.zoomed;
+    if (zoomed && this.MDL.x.scale.type === "time") zoomed = zoomed.map(m => this.MDL.frame.parseValue(m));
+
+    return this.MDL.x.scale.d3Scale.domain(zoomed).range([0, cropWidth]);
+  }
+
+
+  get yScale() {
+    this.services.layout.size; //watch
+    
+    const {margin, lollipopRadius} = this.profileConstants;
+    const cropHeight = (this.height - margin.top - margin.bottom) || 0;
+    const zoomed = this.MDL.y.scale.zoomed;
+    
+    return this.MDL.y.scale.d3Scale.domain(zoomed).range([cropHeight - lollipopRadius, lollipopRadius]);
   }
 
   /*
@@ -787,7 +752,6 @@ class _VizabiLineChart extends BaseComponent {
     
     const {
       graph,
-      entityLabels,
       linesContainerCrop,
       labelsContainerCrop,
       xAxisElContainer,
@@ -814,10 +778,10 @@ class _VizabiLineChart extends BaseComponent {
 
     const isRTL = this.services.locale.isRTL();
 
-    entityLabels.selectAll(".vzb-lc-circle")
+    this.labels.selectAll(".vzb-lc-circle")
       .attr("r", this.shadowWidth ? lollipopRadius : lollipopRadius * 0.8);
 
-    entityLabels.selectAll(".vzb-lc-labelname")
+    this.labels.selectAll(".vzb-lc-labelname")
       .attr("dx", this.shadowWidth ? lollipopRadius * 2 : lollipopRadius * 0.8 * 2);
 
     if(this.MDL.repeat.ncolumns == 1)
@@ -837,13 +801,10 @@ class _VizabiLineChart extends BaseComponent {
       .attr("width", this.cropWidth + margin.right)
       .attr("height", Math.max(0, this.cropHeight));
 
-    this.collisionResolver.height(this.cropHeight);
+    this.collisionResolver.scale(this.yScale).height(this.cropHeight);
 
     graph
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    this.yScale.range([this.cropHeight - lollipopRadius, lollipopRadius]);
-    this.xScale.range([0, this.cropWidth]);
 
     this.yAxis.scale(this.yScale)
       .tickSizeInner(-this.cropWidth)
@@ -1064,10 +1025,7 @@ class _VizabiLineChart extends BaseComponent {
     const OPACITY_SELECT = 1.0;
     const OPACITY_REGULAR = this.ui.opacityRegular;
     const OPACITY_SELECT_DIM = this.ui.opacitySelectDim;
-    const {
-      entityLines,
-      entityLabels
-    } = this.DOM;
+
     const {
       selected: { data: { filter: selectedFilter } },
       highlighted: { data: { filter: highlightedFilter } },
@@ -1084,7 +1042,7 @@ class _VizabiLineChart extends BaseComponent {
       selectedHash[k] = true;
     }
     );
-    entityLines.style("opacity", (d) => {
+    this.lines.style("opacity", (d) => {
       if (highlightedFilter.has(d)) return OPACITY_HIGHLT;
       if (_this.someSelected) {
         return selectedHash[d[KEY]] ? OPACITY_SELECT : OPACITY_SELECT_DIM;
@@ -1092,7 +1050,7 @@ class _VizabiLineChart extends BaseComponent {
       if (someHighlighted) return OPACITY_HIGHLT_DIM;
       return OPACITY_REGULAR;
     });
-    entityLabels.style("opacity", (d) => {
+    this.labels.style("opacity", (d) => {
       if (highlightedFilter.has(d)) {
         d.sortValue = 1;
         return OPACITY_HIGHLT;
@@ -1119,32 +1077,6 @@ class _VizabiLineChart extends BaseComponent {
 
   }
 
-  _zoomToMaxMin() {
-    if (
-      this.model.marker.axis_x.getZoomedMin() != null &&
-      this.model.marker.axis_x.getZoomedMax() != null) {
-      this.xScale.domain([this.model.marker.axis_x.getZoomedMin(), this.model.marker.axis_x.getZoomedMax()]);
-      this.xAxisEl.call(this.xAxis);
-    }
-
-    if (
-      this.model.marker.axis_y.getZoomedMin() != null &&
-      this.model.marker.axis_y.getZoomedMax() != null) {
-      if ((this.model.marker.axis_y.getZoomedMin() <= 0 || this.model.marker.axis_y.getZoomedMax() <= 0)
-        && this.model.marker.axis_y.scaleType == "log") {
-        this.yScale = d3.scaleGenericlog()
-          .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
-          .range(this.yScale.range());
-        this.model.marker.axis_y.scale = d3.scaleGenericlog()
-          .domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()])
-          .range(this.yScale.range());
-        this.yScale = this.model.marker.axis_y.scale;
-      } else {
-        this.yScale.domain([this.model.marker.axis_y.getZoomedMin(), this.model.marker.axis_y.getZoomedMax()]);
-      }
-      this.yAxisEl.call(this.yAxis);
-    }
-  }
 
   /**
    * Returns key from obj which value from values has the smallest difference with val
@@ -1200,5 +1132,9 @@ export const VizabiLineChart = decorate(_VizabiLineChart, {
   "MDL": computed,
   "height": computed,
   "width": computed,
+  "xScale": computed,
+  "yScale": computed,
+  "lines": observable,
+  "labels": observable,
   "profileConstants": computed
 });
