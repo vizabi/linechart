@@ -191,7 +191,7 @@ class _VizabiLineChart extends BaseComponent {
     this.line = d3.line()
       //see https://bl.ocks.org/mbostock/4342190
       //"monotone" can also work. "basis" would skip the points on the sharp turns. "linear" is ugly
-      .curve(d3[(this._isFrameOnXaxis() && this.ui.curve) ? this.ui.curve : "curveLinear"])
+      .curve(d3[(this.isFrameOnXaxis && this.ui.curve) ? this.ui.curve : "curveLinear"])
       .x(d => this.xScale(d[0]))
       .y(d => this.yScale(d[1]));
 
@@ -289,8 +289,8 @@ class _VizabiLineChart extends BaseComponent {
         (this.MDL.frame.value <= this.MDL.frame.parseValue(this.ui.endBeforeForecast))
     );
 
-    const x = this.MDL.x.scale.isSameAsFrameEncScale 
-      ? this.xScale(this.MDL.frame.parseValue(this.ui.endBeforeForecast))
+    const x = this.isFrameOnXaxis
+      ? Math.min(this.xScale.range()[1], this.xScale(this.MDL.frame.parseValue(this.ui.endBeforeForecast)))
       : this.xScale.range()[0];
     const w = this.xScale.range()[1] - x;
     
@@ -396,7 +396,7 @@ class _VizabiLineChart extends BaseComponent {
       const {color, colorShadow} = _this._getColorsByValue(d.values[0].color);
 
       this.circle.style("fill", color);
-      this.label.style("fill", colorShadow);
+      this.labelGroup.style("fill", colorShadow);
     });
 
     this.lines.each(function(d) {
@@ -446,7 +446,7 @@ class _VizabiLineChart extends BaseComponent {
       .text(this.localise("hints/no-data-available"));
   }
 
-  _isFrameOnXaxis(){
+  get isFrameOnXaxis(){
     return this.MDL.frame.data.concept === this.MDL.x.data.concept;
   }
 
@@ -476,10 +476,10 @@ class _VizabiLineChart extends BaseComponent {
         .enter().append("g")
         .attr("class", d => "vzb-lc-entity vzb-lc-entity-" + d[KEY])
         .each(function () {
-          const entity = d3.select(this);
+          this.view = d3.select(this);
           if(_this.shadowWidth) 
-            this.path1 = entity.append("path").attr("class", "vzb-lc-line-shadow");
-          this.path2 = entity.append("path").attr("class", "vzb-lc-line");
+            this.path1 = this.view.append("path").attr("class", "vzb-lc-line-shadow");
+          this.path2 = this.view.append("path").attr("class", "vzb-lc-line");
         });
         
 
@@ -495,26 +495,19 @@ class _VizabiLineChart extends BaseComponent {
           _this.MDL.highlighted.data.filter.delete(d);
         })
         .each(function() {
-          const entity = d3.select(this);
+          this.view = d3.select(this);
+          
+          this.title = this.view.append("title");
 
-          this.circle = entity.append("circle")
+          this.circle = this.view.append("circle")
             .attr("class", "vzb-lc-circle")
             .attr("cx", 0);
-          entity.append("title");
 
-          const labelGroup = this.label = entity.append("g").attr("class", "vzb-lc-label");
+          this.labelGroup = this.view.append("g").attr("class", "vzb-lc-label");
 
-          labelGroup.append("text")
-            .attr("class", "vzb-lc-labelname vzb-lc-labelstroke")
+          this.labelText = this.labelGroup.append("text")
+            .attr("class", "vzb-lc-labeltext")
             .attr("dy", ".35em");
-
-          labelGroup.append("text")
-            .attr("class", "vzb-lc-labelname vzb-lc-labelfill")
-            .attr("dy", ".35em");
-
-          labelGroup.append("text")
-            .attr("class", "vzb-lc-label-value")
-            .attr("dy", "1.6em");
         });
     });
   }
@@ -623,57 +616,55 @@ class _VizabiLineChart extends BaseComponent {
 
       });
 
-    const addValueToLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
+    const showValueInLabel = this.data.length < this.ui.labels.min_number_of_entities_when_values_hide;
 
     this.labels
       .each(function(d) {
-        const entity = d3.select(this);
 
-        const labelText = _this._getLabelText(d);
-        const maxSymbolCount = addValueToLabel ? 7 : 13;
-        const label = labelText.length <= maxSymbolCount ? labelText : labelText.substring(0, maxSymbolCount).trim() + "…";//"…";
+        if (!_this.cached[d[KEY]]) {
+          //data missing
+          this.view.classed("vzb-hidden", true);
 
-        if (_this.cached[d[KEY]]) {
+        } else if(_this.isFrameOnXaxis && _this.time > d3.max(_this.xScale.domain())) {
+          //time out of bounds
+          this.view.classed("vzb-hidden", true);
+
+        } else {
+
+          const labelText = _this._getLabelText(d);
+          const maxSymbolCount = showValueInLabel ? 7 : 13;
+          const label = labelText.length <= maxSymbolCount ? labelText : labelText.substring(0, maxSymbolCount).trim() + "…";//"…";
+
           d.valueX = _this.xScale(_this.cached[d[KEY]]["valueX"]);
           d.valueY = _this.yScale(_this.cached[d[KEY]]["valueY"]);
-          entity
+          this.view
             .classed("vzb-hidden", false)
             .transition()
             .duration(_this.duration)
             .ease(d3.easeLinear)
             .attr("transform", "translate(" + d.valueX + ",0)");
 
-          entity.select(".vzb-lc-circle")
+          this.circle
             .transition()
             .duration(_this.duration)
             .ease(d3.easeLinear)
             .attr("cy", d.valueY + 1);
 
-          const value = _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
-          if (addValueToLabel) {
+          const labelAndValue = label + " " + _this.yAxis.tickFormat()(_this.cached[d[KEY]]["valueY"]);
 
-            entity.selectAll(".vzb-lc-labelname")
-              .text(label + " " + value);
-          } else {
-            entity.selectAll(".vzb-lc-labelname")
-              .text(label);
-          }
-          entity.select("title").text(label + " " + value);
+          this.labelText.text(showValueInLabel ? labelAndValue : label);
+          this.title.text(labelAndValue);
 
-          entity.select(".vzb-lc-label")
+          this.labelGroup
             .transition()
             .duration(_this.duration)
             .ease(d3.easeLinear)
             .attr("transform", "translate(0," + d.valueY + ")");
-
-        } else {
-          entity
-            .classed("vzb-hidden", true);
         }   
       });
 
 
-    if (this._isFrameOnXaxis()){
+    if (this.isFrameOnXaxis){
       verticalNow
         .transition()
         .duration(_this.duration)
@@ -681,7 +672,7 @@ class _VizabiLineChart extends BaseComponent {
         .attr("transform", "translate(" + _this.xScale(_this.time) + ",0)");
     }
 
-    if (this._isFrameOnXaxis() && !this.hoveringNow && this.time - frame.start !== 0) {
+    if (this.isFrameOnXaxis && !this.hoveringNow && this.time - frame.start !== 0 && this.time <= d3.max(_this.xScale.domain())) {
       if (!_this.ui.hideXAxisValue) xAxisEl.call(
         this.xAxis
           .highlightTransDuration(this.duration)
@@ -781,7 +772,7 @@ class _VizabiLineChart extends BaseComponent {
     this.labels.selectAll(".vzb-lc-circle")
       .attr("r", this.shadowWidth ? lollipopRadius : lollipopRadius * 0.8);
 
-    this.labels.selectAll(".vzb-lc-labelname")
+    this.labels.selectAll(".vzb-lc-labeltext")
       .attr("dx", this.shadowWidth ? lollipopRadius * 2 : lollipopRadius * 0.8 * 2);
 
     if(this.MDL.repeat.ncolumns == 1)
@@ -885,7 +876,7 @@ class _VizabiLineChart extends BaseComponent {
       verticalNow.style("opacity", 1);
       projectionX.style("opacity", 0);
       projectionY.style("opacity", 0);
-      xAxisEl.call(this.xAxis.highlightValue(this._isFrameOnXaxis() ? this.time : "none"));
+      xAxisEl.call(this.xAxis.highlightValue(this.isFrameOnXaxis ? this.time : "none"));
       yAxisEl.call(this.yAxis.highlightValue("none"));
       graph.selectAll(".vzb-lc-entity").each(function() {
         d3.select(this).classed("vzb-dimmed", false).classed("vzb-hovered", false);
@@ -982,11 +973,11 @@ class _VizabiLineChart extends BaseComponent {
     }
 
     if (_this.ui.whenHovering.higlightValueX) xAxisEl.call(
-      _this.xAxis.highlightValue(this._isFrameOnXaxis() ? resolvedTime : "none").highlightTransDuration(0)
+      _this.xAxis.highlightValue(this.isFrameOnXaxis ? resolvedTime : "none").highlightTransDuration(0)
     );
 
     if (_this.ui.whenHovering.higlightValueY) yAxisEl.call(
-      _this.yAxis.highlightValue(this._isFrameOnXaxis() ? resolvedValue : "none").highlightTransDuration(0)
+      _this.yAxis.highlightValue(this.isFrameOnXaxis ? resolvedValue : "none").highlightTransDuration(0)
     );
 
     clearTimeout(_this.unhoverTimeout);
@@ -1004,7 +995,7 @@ class _VizabiLineChart extends BaseComponent {
       DOM.verticalNow.style("opacity", 1);
       DOM.projectionX.style("opacity", 0);
       DOM.projectionY.style("opacity", 0);
-      DOM.xAxisEl.call(_this.xAxis.highlightValue(this._isFrameOnXaxis() ? _this.time : "none"));
+      DOM.xAxisEl.call(_this.xAxis.highlightValue(this.isFrameOnXaxis ? _this.time : "none"));
       DOM.yAxisEl.call(_this.yAxis.highlightValue("none"));
 
       if (_this.hoveringNow) _this.MDL.highlighted.data.filter.delete(_this.hoveringNow);
@@ -1136,5 +1127,6 @@ export const VizabiLineChart = decorate(_VizabiLineChart, {
   "yScale": computed,
   "lines": observable,
   "labels": observable,
-  "profileConstants": computed
+  "profileConstants": computed,
+  "isFrameOnXaxis": computed
 });

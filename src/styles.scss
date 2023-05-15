@@ -84,9 +84,8 @@
         .vzb-lc-entity {
           cursor: pointer;
         }
-        .vzb-lc-labelstroke {
+        .vzb-lc-labeltext {
           paint-order: stroke;
-          fill: none;
           stroke: #FFFFFF;
           stroke-width: 3px;
         }
@@ -119,8 +118,7 @@
         @extend %vzb-chart-axis-title-large;
       }
 
-      .vzb-lc-labelname,
-      .vzb-lc-label-value,
+      .vzb-lc-labeltext,
       .vzb-lc-axis-x,
       .vzb-lc-axis-y,
       .vzb-lc-axis-value {
@@ -150,8 +148,7 @@
         @extend %vzb-chart-axis-title-medium;
       }
 
-      .vzb-lc-labelname,
-      .vzb-lc-label-value,
+      .vzb-lc-labeltext,
       .vzb-lc-axis-x,
       .vzb-lc-axis-y,
       .vzb-lc-axis-value {
@@ -181,8 +178,7 @@
         @extend %vzb-chart-axis-title-small;
       }
 
-      .vzb-lc-labelname,
-      .vzb-lc-label-value,
+      .vzb-lc-labeltext,
       .vzb-lc-axis-x,
       .vzb-lc-axis-y,
       .vzb-lc-axis-value {
