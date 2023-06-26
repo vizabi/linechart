@@ -9,6 +9,9 @@ import {
 import * as d3 from "d3";
 import { runInAction, decorate, computed, observable } from "mobx";
 
+const COLOR_BLACKISH = "#333";
+const COLOR_GREYISH = "#888";
+
 const {ICON_QUESTION} = Icons;
 const PROFILE_CONSTANTS = {
   SMALL: {
@@ -198,10 +201,6 @@ class _VizabiLineChart extends BaseComponent {
     this.lineWidthScale = d3.scaleLinear().domain([0, 20]).range([7, 1]).clamp(true);
     this.xAxis = axisSmart("bottom");
     this.yAxis = axisSmart("left");
-
-    this.COLOR_BLACKISH = "#333";
-    this.COLOR_WHITEISH = "#fdfdfd";
-    this.COLOR_WHITEISH_SHADE = "#555";
 
     this.DOM.graph.on("click", () => {
       const {
@@ -409,13 +408,9 @@ class _VizabiLineChart extends BaseComponent {
 
   _getColorsByValue(colorValue) {
     const cScale = this.MDL.color.scale.d3Scale;
-    return { 
-      color: colorValue != null ? cScale(colorValue) : this.COLOR_WHITEISH,
-      colorShadow: colorValue != null ? this.MDL.color.scale.palette.getColorShade({
-        colorID: colorValue,
-        shadeID: "shade"
-      })
-        : this.COLOR_WHITEISH_SHADE
+    return {
+      color: colorValue != null && !utils.isNaN(colorValue) ? cScale(colorValue) : COLOR_GREYISH,
+      colorShadow: this.MDL.color.scale.palette.getColorShade({colorID: colorValue}) || COLOR_BLACKISH
     };
   }
 
