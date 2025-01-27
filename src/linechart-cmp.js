@@ -256,7 +256,7 @@ class _VizabiLineChart extends BaseComponent {
   }
 
   draw() {
-    this.localise = this.services.locale.auto(this.MDL.frame.interval);
+    this.localise = this.services.locale.auto({interval: this.MDL.frame.interval});
     
     this.TIMEDIM = this.MDL.frame.data.concept;
         
