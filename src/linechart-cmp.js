@@ -266,7 +266,7 @@ class _VizabiLineChart extends BaseComponent {
     this.addReaction(this.updateUIStrings);
     this.addReaction(this.addOrRemoveLinesAndLabels);
     this.addReaction(this.updateColors);
-    this.addReaction(this.updateSize);
+    this.addReaction(this.updateSize, {throttle_ms: 50});
     this.addReaction(this.drawForecastOverlay);
     
     this.addReaction(this.redrawDataPoints);
