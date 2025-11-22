@@ -20,10 +20,10 @@ export default class LineChart extends BaseComponent {
 
   constructor(config){
 
-    const markerName = config.options?.markerNames?.line || "line";
-    config.Vizabi.utils.applyDefaults(config.model.markers[markerName].config, LineChart.DEFAULT_CORE(markerName));  
-
-    const marker = config.model.markers[markerName];
+    const marker = config.model.markers?.line;
+    const markerLegend = config.model.markers?.legend;
+    config.Vizabi.utils.applyDefaults(marker?.config || {}, LineChart.DEFAULT_MODEL.line);   
+    config.Vizabi.utils.applyDefaults(markerLegend?.config || {}, LineChart.DEFAULT_MODEL.legend);  
 
     config.name = "linechart";
 
@@ -107,62 +107,147 @@ export default class LineChart extends BaseComponent {
 }
 
 LineChart.DEFAULT_UI = {
-  chart: {
+  "locale": { "id": "en", "shortNumberFormat": true },
+  "layout": { "projector": false },
+
+  "buttons": {
+    "buttons": ["markercontrols", "colors", "moreoptions", "presentation", "sidebarcollapse", "fullscreen"]
   },
+  "dialogs": {
+    "dialogs": {
+      "popup": ["colors", "markercontrols", "moreoptions"],
+      "sidebar": ["colors", "markercontrols"],
+      "moreoptions": ["opacity", "speed", "colors", "axes", "technical", "repeat", "presentation", "about"]
+    },
+    "markercontrols": {
+      "disableSlice": true,
+      "disableAddRemoveGroups": true,
+      "primaryDim": null,
+      "drilldown": null,
+      "shortcutForSwitch": false,
+      "shortcutForSwitch_allow": null
+    }
+  },
+  "marker-contextmenu": {
+    "primaryDim": null,
+    "drilldown": null,
+  },
+  "time-slider": {
+    "show_value": false
+  },
+  "chart": {
+    "showForecast": false,
+    "showForecastOverlay": true,
+    "pauseBeforeForecast": true,
+    "endBeforeForecast": null, //value like "2022", auto-resolved to current time minus one frame step
+    "opacityHighlight": 1.0,
+    "opacitySelect": 1.0,
+    "opacityHighlightDim": 0.1,
+    "opacitySelectDim": 0.3,
+    "opacityRegular": 0.8,
+    "hideXAxisValue": false,
+    "curve": "curveMonotoneX", //curveBasis curveLinear curveMonotoneX curveCatmullRom curveNatural
+    "whenHovering": {
+      "showTooltip": false,
+      "hideVerticalNow": false,
+      "showProjectionLineX": true,
+      "showProjectionLineY": true,
+      "higlightValueX": true,
+      "higlightValueY": true
+    },
+    "labels": {
+      "min_number_of_entities_when_values_hide": 3
+    }
+  },
+  "data-warning": {
+    "enable": false,
+    "margin": {
+      "LARGE": { "bottom": 90 },
+      "MEDIUM": { "bottom": 70 },
+      "SMALL": { "bottom": 50 }
+    }
+  },
+  "tree-menu": {
+    "showDataSources": false,
+    "folderStrategyByDataset": {}
+  }
 };
-LineChart.DEFAULT_CORE = (markerName) => ({
-  requiredEncodings: ["x", "y"],
-  encoding: {
-    "selected": {
-      modelType: "selection"
-    },
-    "highlighted": {
-      modelType: "selection"
-    },
-    "y": {
-      scale: {
-        allowedTypes: ["linear", "log", "genericLog", "pow"]
-      }
-    },
-    "x": {
-      data: {
-        concept: { 
-          ref: `markers.${markerName}.encoding.frame.data.concept`
+
+
+LineChart.DEFAULT_MODEL = {
+  "line": {
+    "requiredEncodings": ["x", "y"],
+    "encoding": {
+      "show": { "modelType": "selection" },
+      "selected": { "modelType": "selection" },
+      "highlighted": { "modelType": "selection" },
+      "x": {
+        "data": {
+          "concept": { "ref": `markers.line.encoding.frame.data.concept` }
+        },
+        "scale": {
+          "allowedTypes": ["time"]
         }
       },
-      scale: {
-        allowedTypes: ["linear", "log", "genericLog", "pow", "time"]
-      }
-    },
-    "color": {
-      data: {
-        concept: { filter: { concept_type: { $in: ["entity_set", "entity_domain"]} } },
-        
-        allow: {
-          space: {
-            filter: {
-              concept_type: { $ne: "time" }
-            }
-          }
+      "y": {
+        "data": { },
+        "scale": {
+          "allowedTypes": ["linear", "log", "genericLog", "pow"]
         }
       },
-      scale: {
-        modelType: "color"
+      "color": {
+        "data": { 
+          "constant": "_default",
+          "concept": { "filter": { "concept_type": { "$in": ["entity_set", "entity_domain"]} } },
+          "allow": { "space": { "filter": { "concept_type": { "$ne": "time" } } } }
+        },
+        "scale": {
+          "modelType": "color"
+        }
+      },
+      "label": { "data": { "modelType": "entityPropertyDataConfig" } },
+      "frame": { "modelType": "frame", "speed": 200, "splash": true },
+      "repeat": {
+        "modelType": "repeat",
+        "allowEnc": ["y", "x"]
+      }
+    }
+  },
+  "legend": {
+    "data": {
+      "ref": {
+        "transform": "entityConceptSkipFilter",
+        "path": "markers.line.encoding.color"
       }
     },
-    "label": {
-      data: {
-        modelType: "entityPropertyDataConfig",
-      }
-    },
-    "repeat": {
-      modelType: "repeat",
-      allowEnc: ["y", "x"]
-    },
-    frame: {
-      modelType: "frame"
+    "encoding": {
+      "color": {
+        "data": {
+          "concept": { "ref": "markers.line.encoding.color.data.concept" },
+          "constant": { "ref": "markers.line.encoding.color.data.constant" }
+        },
+        "scale": {
+          "modelType": "color",
+          "palette": { "ref": "markers.line.encoding.color.scale.palette" },
+          "domain": null,
+          "range": null,
+          "type": null,
+          "zoomed": null,
+          "zeroBaseline": false,
+          "clamp": false,
+          "allowedTypes": null
+        }
+        //"scale": { "ref": "markers.line.encoding.color.scale" }
+      },
+      "name": { "data": { } },
+      "order": {
+        "modelType": "order",
+        "direction": "asc",
+        "data": { }
+      },
+      "map": { "data": { } }
     }
   }
-});
+};
 
 LineChart.versionInfo = { version: __VERSION, build: __BUILD, package: __PACKAGE_JSON_FIELDS, sharedComponents: versionInfo};
