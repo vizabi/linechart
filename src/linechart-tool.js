@@ -55,7 +55,7 @@ export default class LineChart extends BaseComponent {
     },{
       type: DataWarning,
       placeholder: ".vzb-datawarning",
-      options: {button: ".vzb-datawarning-button"},
+      options: {appendButtonHere: ".vzb-repeater"},
       model: marker,
       name: "data-warning"
     },{

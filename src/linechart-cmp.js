@@ -135,7 +135,6 @@ class _VizabiLineChart extends BaseComponent {
 
               <rect class="vzb-lc-forecastoverlay vzb-hidden" fill="url(#vzb-lc-pattern-lines-${config.id})" pointer-events='none'></rect>
           </g>
-          <g class="vzb-datawarning-button vzb-noexport"></g>
       </svg>
       <div class="vzb-tooltip vzb-hidden"></div>
       <svg>
@@ -879,16 +878,6 @@ class _VizabiLineChart extends BaseComponent {
 
       this.hoveringNow = null;
     }
-
-    this.root.findChild({type: "_DataWarning"}).setOptions({
-      width: this.width,
-      height: this.height,
-      vertical: "top", 
-      horizontal: "right", 
-      right: 30,
-      top: margin.top + titleBBox.y,
-      wLimit: this.width - titleBBox.width - infoElHeight * 2
-    });
   }
 
   _entityMousemove(event) {
